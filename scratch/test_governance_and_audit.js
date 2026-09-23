@@ -37,8 +37,8 @@ async function runTests() {
 
   // 1. Log in users
   const superAdmin = await login('admin', 'Admin@PKG#2024');
-  const admin = await login('admin.sarah@company.com', 'Admin@2024');
-  const updater = await login('updater.pkg@company.com', 'Updater@2024');
+  const admin = await login('balaji.sathishkumar@company.com', 'Admin@2024');
+  const updater = await login('akshra.ojha@company.com', 'Updater@2024');
 
   console.log(`  Super Admin login: ${superAdmin.status}`);
   console.log(`  Admin login: ${admin.status}`);
@@ -133,6 +133,16 @@ async function runTests() {
     headers: { 'Content-Type': 'application/json', 'Cookie': updater.cookie }
   }, { specs: { pouchFormat: 'Stand-up Ziplock', webWidth: '220mm', thickness: '110 mic' } });
   console.log(`  Specs update status: ${specsRes.status}`);
+
+  // Sign off specs (required for PO raise and stage advance)
+  const signRes = await request({
+    hostname: 'localhost',
+    port: 5001,
+    path: `/api/projects/${proj.id}/materials/0/specsignoff`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Cookie': admin.cookie }
+  }, { signed: true, notes: 'Specs confirmed by PM' });
+  console.log(`  Spec sign-off status: ${signRes.status}`);
 
   // Update PO
   const poRes = await request({

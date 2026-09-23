@@ -330,7 +330,7 @@ export default function Header({
         </div>
 
         {/* SECONDARY ACTION: EXPORT */}
-        <button className="btn btn-secondary btn-sm" onClick={exportCSV} title="Export CSV Data">
+        <button className="btn btn-secondary btn-sm" onClick={exportCSV} title="Export Complete Project Data (Excel .xlsx)">
           <Download size={14} /> <span className="hide-on-mobile">Export</span>
         </button>
 

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   getMe, logout, getProjects, createProject, updateProject, deleteProject,
   advanceProject, revokeProject, launchProject, changeBriefDate,
-  advanceMaterial, revokeMaterial, saveSpecs, getLogs, getSeenAt, updateSpecInLibrary
+  advanceMaterial, revokeMaterial, saveSpecs, getLogs, getSeenAt, updateSpecInLibrary,
+  exportProjectsExcel
 } from './api';
 
 import AuthScreen from './components/Auth/AuthScreen';
@@ -381,22 +382,44 @@ export default function App() {
     handleOpenProjectDrawer(projectId, matIndex, initialTab);
   };
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
     if (!projects.length) { showToast('⚠ No data to export', true); return; }
-    const headers = ['ID','FG Code','Project Name','Grammage','Stage','Status','Risk','Brief Date','Target Launch','Actual Launch','Supplier','Factory','Comments'];
-    const rows = projects.map(p => [
-      p.id, p.fgCode || '', `"${(p.projectName || '').replace(/"/g, '""')}"`, p.grammage || '',
-      getProjectStage(p), p.status, p.risk, p.briefDate || '', p.targetLaunchDate || '', p.launchDate || '',
-      `"${(p.supplier || '').replace(/"/g, '""')}"`, `"${(p.factory || '').replace(/"/g, '""')}"`, `"${(p.comments || '').replace(/"/g, '""')}"`
-    ]);
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `PKG_Tracker_Export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    showToast('⏳ Generating Excel export…');
+    try {
+      const filters = {};
+      if (stageFilter)  filters.stage  = stageFilter;
+      if (statusFilter) filters.status = statusFilter;
+      if (searchQuery)  filters.search = searchQuery;
+
+      const res = await exportProjectsExcel(filters);
+
+      // Extract filename from Content-Disposition header (if available)
+      let filename = 'PKG_Tracker_Export.xlsx';
+      const cd = res.headers?.['content-disposition'];
+      if (cd) {
+        const match = cd.match(/filename="?([^"]+)"?/);
+        if (match?.[1]) filename = match[1];
+      }
+
+      // Trigger browser download from the blob
+      const url = URL.createObjectURL(res.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast(`✅ Export complete — ${filename}`);
+    } catch (err) {
+      console.error('Export failed:', err);
+      const msg = err.response?.status === 404
+        ? '⚠ No matching projects to export. Clear your filters and try again.'
+        : '⚠ Export failed. Please try again.';
+      showToast(msg, true);
+    }
   };
 
   if (loading) {

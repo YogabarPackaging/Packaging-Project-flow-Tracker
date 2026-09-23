@@ -347,7 +347,7 @@ export function getDefaultSpecSheet(materialType = '', projectName = '', skuSize
       storageAndPacking: {
         storage: 'Store at room temperature & in dust-free environment. Store in flat form (horizontal pallets).',
         packing: '10 no. of shippers along with partition and gap plated to be bundled properly with PP strap. Bundles to be packed in kraft paper. Cover to be labeled with item name, supplier name, quantity, lot no. etc.',
-        shippingDocs: 'COA report with signed and stamped should be presented before the unloading process.',
+        shippingDocs: 'COA report with sign and stamp should be presented before the unloading process.',
         reasonsForRevision: 'NA'
       },
       variants: defaultVariants,
@@ -591,7 +591,7 @@ export function getDefaultSpecSheet(materialType = '', projectName = '', skuSize
       storageAndPacking: {
         storage: 'Store at room temperature & in a Dust-free environment',
         packing: 'Rolls should be packed in polythene bags, properly marked with product name, quantity, order no. and manufacturers name. The same should be packed in transport worthy non-returnable 5 ply corrugated boxes with proper legible markings.',
-        shippingDocs: 'COA report with signed and stamped should be presented before the unloading process. Food grade certificate, Heavy metal migration and Pthalate Content certificate should be submitted every 1 year which is mandatory.',
+        shippingDocs: 'COA report with sign and stamp should be presented before the unloading process. Food grade certificate, Heavy metal migration and Pthalate Content certificate should be submitted every 1 year which is mandatory.',
         reasonsForRevision: 'NA'
       },
       variants: defaultVariants,
@@ -667,7 +667,7 @@ export function getDefaultSpecSheet(materialType = '', projectName = '', skuSize
       storageAndPacking: {
         storage: 'Store at room temperature & in dust-free environment.',
         packing: 'Pouches should be packed in polythene bags, properly marked with product name, quantity, order no. and manufacturers name. The same should be packed in transport worthy non-returnable 5 ply corrugated boxes with proper legible markings.',
-        shippingDocs: 'COA, GC report with signed and stamped should be presented before the unloading process. Food grade certificate, Heavy metal migration and Pthalate Content certificate should be submitted every 1 year which is mandatory.',
+        shippingDocs: 'COA, GC report with sign and stamp should be presented before the unloading process. Food grade certificate, Heavy metal migration and Pthalate Content certificate should be submitted every 1 year which is mandatory.',
         reasonsForRevision: 'NA'
       },
       variants: defaultVariants,

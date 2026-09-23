@@ -458,8 +458,8 @@ export default function Dashboard({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {exportCSV && (
-              <button className="btn btn-ghost btn-sm" onClick={exportCSV} title="Export Project Data CSV">
-                <FileText size={13} /> Export CSV
+              <button className="btn btn-ghost btn-sm" onClick={exportCSV} title="Export Complete Project Data (Excel .xlsx)">
+                <FileText size={13} /> Export Excel
               </button>
             )}
             {canCreate && (

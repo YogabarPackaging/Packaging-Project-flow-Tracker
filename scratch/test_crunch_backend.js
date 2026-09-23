@@ -36,9 +36,9 @@ async function runTests() {
   console.log('🧪 TESTING CRUNCH TIMELINE & 2-STAGE APPROVAL WORKFLOW\n');
 
   // 1. Log in users
-  const superAdmin = await login('superadmin@company.com', 'Admin@PKG#2024');
-  const admin1 = await login('admin.sarah@company.com', 'Admin@2024');
-  const updater = await login('updater.pkg@company.com', 'Updater@2024');
+  const superAdmin = await login('admin', 'Admin@PKG#2024');
+  const admin1 = await login('balaji.sathishkumar@company.com', 'Admin@2024');
+  const updater = await login('akshra.ojha@company.com', 'Updater@2024');
 
   if (superAdmin.status !== 200 || admin1.status !== 200 || updater.status !== 200) {
     throw new Error('Failed to log in test users');
@@ -173,6 +173,18 @@ async function runTests() {
   console.log(`  ✅ PASS: Stage 2 Final Approved by ${s2Res.body.crunchPlan.stage2.approvedBy}`);
   console.log(`     New Status: ${s2Res.body.crunchPlan.status}`);
   console.log(`     Updated Active Connectivity Date: ${s2Res.body.project.milestones.Connectivity}`);
+
+  // Sign off specs so spec gate is satisfied
+  await request({
+    hostname: 'localhost', port: 5001,
+    path: `/api/projects/${proj.id}/materials/0/specsignoff`, method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Cookie': admin1.cookie }
+  }, { signed: true, notes: 'Signed off specs for pouch' });
+  await request({
+    hostname: 'localhost', port: 5001,
+    path: `/api/projects/${proj.id}/materials/1/specsignoff`, method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Cookie': admin1.cookie }
+  }, { signed: true, notes: 'Signed off specs for monocarton' });
 
   // 9. Verify Action Gating is lifted and Updater CAN advance to Sample
   const advSuccess = await request({

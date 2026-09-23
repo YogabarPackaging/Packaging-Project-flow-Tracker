@@ -114,6 +114,15 @@ export const getDataQualityAudit = () => api.get('/data-quality/audit');
 // Controlled Import
 export const validateImport = (records) => api.post('/import/validate', { records });
 export const commitImport = (records) => api.post('/import/commit', { records });
+export const downloadImportTemplate = () => api.get('/import/template', { responseType: 'blob' });
+export const uploadImportExcel = (file, dryRun = false) => {
+  const form = new FormData();
+  form.append('file', file);
+  return api.post(`/import/upload?dryRun=${dryRun}`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+};
+export const uploadImportExcelCommit = (file) => uploadImportExcel(file, false);
 
 // Webhook & Integration Platform
 export const getWebhooks = () => api.get('/webhooks');
@@ -131,6 +140,22 @@ export const getPackagingFormatById = (id) => api.get(`/packaging-formats/${id}`
 export const createPackagingFormat = (data) => api.post('/packaging-formats', data);
 export const updatePackagingFormat = (id, data) => api.put(`/packaging-formats/${id}`, data);
 export const deletePackagingFormat = (id) => api.delete(`/packaging-formats/${id}`);
+
+// ── Comprehensive Excel Export ─────────────────────────────────────────────
+/**
+ * Trigger a comprehensive multi-sheet Excel export.
+ * Returns a Blob; the caller is responsible for triggering the browser download.
+ *
+ * @param {object} filters - { stage?, status?, search? }
+ */
+export const exportProjectsExcel = (filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.stage)  params.set('stage',  filters.stage);
+  if (filters.status) params.set('status', filters.status);
+  if (filters.search) params.set('search', filters.search);
+  const qs = params.toString();
+  return api.get(`/export/projects${qs ? '?' + qs : ''}`, { responseType: 'blob' });
+};
 
 export default api;
 

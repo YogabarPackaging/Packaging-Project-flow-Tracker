@@ -24,6 +24,7 @@ const dataQualityRoutes = require('./routes/dataQualityRoutes');
 const importRoutes = require('./routes/importRoutes');
 const packagingFormatRoutes = require('./routes/packagingFormatRoutes');
 const apiDocsRoutes = require('./routes/apiDocsRoutes');
+const exportRoutes = require('./routes/exportRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -93,6 +94,7 @@ v1Router.use('/reports', reportRoutes);
 v1Router.use('/data-quality', dataQualityRoutes);
 v1Router.use('/import', importRoutes);
 v1Router.use('/packaging-formats', packagingFormatRoutes);
+v1Router.use('/export', exportRoutes);
 v1Router.use('/', apiDocsRoutes);
 
 app.use('/api/v1', v1Router);

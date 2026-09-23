@@ -56,25 +56,25 @@ async function runTests() {
   assert(superRes.status === 200 && superRes.user.role === 'superadmin', 'Super Admin logged in with role superadmin');
 
   // 3. Test 2 Admins Login
-  const admin1 = await login('admin.sarah@company.com', 'Admin@2024');
-  assert(admin1.status === 200 && admin1.user.role === 'admin' && admin1.user.name === 'Sarah Jenkins', 'Admin 1 (Sarah Jenkins) logged in with role admin');
+  const admin1 = await login('balaji.sathishkumar@company.com', 'Admin@2024');
+  assert(admin1.status === 200 && admin1.user.role === 'admin' && admin1.user.name === 'Balaji Sathishkumar', 'Admin 1 (Balaji Sathishkumar) logged in with role admin');
 
-  const admin2 = await login('admin.marcus@company.com', 'Admin@2024');
-  assert(admin2.status === 200 && admin2.user.role === 'admin' && admin2.user.name === 'Marcus Vance', 'Admin 2 (Marcus Vance) logged in with role admin');
+  const admin2 = await login('growth.pm@company.com', 'Admin@2024');
+  assert(admin2.status === 200 && admin2.user.role === 'admin', 'Admin 2 (Growth PM) logged in with role admin');
 
-  // 4. Test 6 Updaters Login
+  // 4. Test Updaters Login
   const updaters = [
-    { email: 'updater.brand@company.com', dept: 'Brand Management', name: 'Emily Chen' },
-    { email: 'updater.pkg@company.com', dept: 'Packaging Engineering', name: 'David Kumar' },
-    { email: 'updater.procure@company.com', dept: 'Procurement & Sourcing', name: 'Rachel Adams' },
-    { email: 'updater.factory@company.com', dept: 'Factory Operations', name: 'Vikram Patel' },
-    { email: 'updater.qa@company.com', dept: 'Quality & Regulatory', name: 'Elena Rostova' },
-    { email: 'updater.sc@company.com', dept: 'Supply Chain & Logistics', name: 'James Wilson' },
+    { email: 'akshra.ojha@company.com', dept: 'Regular Vertical Execution', name: 'Akshra Ojha', pass: 'Updater@2024' },
+    { email: 'manideep@company.com', dept: 'Growth Vertical Execution', name: 'Manideep', pass: 'Updater@2024' },
+    { email: 'intern1.regular@company.com', dept: 'Regular Vertical Execution', name: 'Intern 1', pass: 'Intern@2024' },
+    { email: 'intern2.regular@company.com', dept: 'Regular Vertical Execution', name: 'Intern 2', pass: 'Intern@2024' },
+    { email: 'intern3.regular@company.com', dept: 'Regular Vertical Execution', name: 'Intern 3', pass: 'Intern@2024' },
+    { email: 'intern1.growth@company.com', dept: 'Growth Vertical Execution', name: 'Intern 1', pass: 'Intern@2024' },
   ];
 
   let updaterSessions = {};
   for (const u of updaters) {
-    const res = await login(u.email, 'Updater@2024');
+    const res = await login(u.email, u.pass);
     assert(res.status === 200 && res.user.role === 'updater', `Updater ${u.name} (${u.dept}) logged in`);
     updaterSessions[u.email] = res.cookie;
   }
@@ -96,7 +96,7 @@ async function runTests() {
     port: 5001,
     path: '/api/projects',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['updater.brand@company.com'] }
+    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['akshra.ojha@company.com'] }
   }, {
     projectName: 'Unauthorized Project Attempt',
     briefDate: '2026-09-08',
@@ -124,46 +124,56 @@ async function runTests() {
   assert(adminCreate.status === 201 && adminCreate.body.project?.id, `Admin 1 created project "${adminCreate.body?.project?.projectName}" (ID: ${adminCreate.body?.project?.id})`);
   const projectId = adminCreate.body.project.id;
 
+  // 6c. Sign off technical specifications for Material 0 (required by platform governance)
+  const signoffRes = await request({
+    hostname: 'localhost',
+    port: 5001,
+    path: `/api/projects/${projectId}/materials/0/specsignoff`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Cookie': admin1.cookie }
+  }, { signed: true, notes: 'Signed off specs for testing' });
+  assert(signoffRes.status === 200, 'Admin 1 signed off specs for Material 0');
+
   // 7. Updaters move actions:
-  // 7a. Updater (Packaging) advances Material 0 -> MUST SUCCEED (200)
+  // 7a. Updater advances Material 0 -> MUST SUCCEED (200)
   const advanceMat0 = await request({
     hostname: 'localhost',
     port: 5001,
     path: `/api/projects/${projectId}/materials/0/advance`,
     method: 'POST',
-    headers: { 'Cookie': updaterSessions['updater.pkg@company.com'] }
+    headers: { 'Cookie': updaterSessions['akshra.ojha@company.com'] }
   });
-  assert(advanceMat0.status === 200 && advanceMat0.body.project?.materials[0].stage === 'Sample', 'Updater (Packaging) advanced Material 0 from Brief to Sample');
+  assert(advanceMat0.status === 200 && advanceMat0.body.project?.materials[0].stage === 'Sample', 'Updater (Executive) advanced Material 0 from Brief to Sample');
 
-  // 7b. Updater (Procurement) updates Purchase Order status & number -> MUST SUCCEED (200)
+  // 7b. Updater updates Purchase Order status & number -> MUST SUCCEED (200)
   const updatePO = await request({
     hostname: 'localhost',
     port: 5001,
     path: `/api/projects/${projectId}/materials/0/po`,
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['updater.procure@company.com'] }
+    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['manideep@company.com'] }
   }, { poStatus: 'Raised', poNumber: 'PO-99881' });
-  assert(updatePO.status === 200 && updatePO.body.project?.materials[0].poStatus === 'Raised', 'Updater (Procurement) updated PO to "Raised" (#PO-99881)');
+  assert(updatePO.status === 200 && updatePO.body.project?.materials[0].poStatus === 'Raised', 'Updater updated PO to "Raised" (#PO-99881)');
 
-  // 7c. Updater (Packaging) updates PM Code & Specs -> MUST SUCCEED (200)
+  // 7c. Updater updates PM Code & Specs -> MUST SUCCEED (200)
   const updatePM = await request({
     hostname: 'localhost',
     port: 5001,
     path: `/api/projects/${projectId}/materials/0/pmcode`,
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['updater.pkg@company.com'] }
+    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['akshra.ojha@company.com'] }
   }, { pmCode: 'PM-POUCH-500' });
-  assert(updatePM.status === 200 && updatePM.body.project?.materials[0].pmCode === 'PM-POUCH-500', 'Updater (Packaging) updated PM code to PM-POUCH-500');
+  assert(updatePM.status === 200 && updatePM.body.project?.materials[0].pmCode === 'PM-POUCH-500', 'Updater updated PM code to PM-POUCH-500');
 
-  // 7d. Updater (Brand) updates FG Code -> MUST SUCCEED (200)
+  // 7d. Updater updates FG Code -> MUST SUCCEED (200)
   const updateFG = await request({
     hostname: 'localhost',
     port: 5001,
     path: `/api/projects/${projectId}/fgcode`,
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['updater.brand@company.com'] }
+    headers: { 'Content-Type': 'application/json', 'Cookie': updaterSessions['akshra.ojha@company.com'] }
   }, { fgCode: 'FG-LIVE-123' });
-  assert(updateFG.status === 200 && updateFG.body.project?.fgCode === 'FG-LIVE-123', 'Updater (Brand) updated FG Code to FG-LIVE-123');
+  assert(updateFG.status === 200 && updateFG.body.project?.fgCode === 'FG-LIVE-123', 'Updater updated FG Code to FG-LIVE-123');
 
   // 8. Test Revocation Access Control:
   // 8a. Updater attempts to revoke Material 0 -> MUST FAIL (403 Forbidden)
@@ -172,7 +182,7 @@ async function runTests() {
     port: 5001,
     path: `/api/projects/${projectId}/materials/0/revoke`,
     method: 'POST',
-    headers: { 'Cookie': updaterSessions['updater.pkg@company.com'] }
+    headers: { 'Cookie': updaterSessions['akshra.ojha@company.com'] }
   });
   assert(updaterRevoke.status === 403, 'Updater CANNOT revoke material movements (403 Forbidden strictly enforced)');
 
@@ -193,7 +203,7 @@ async function runTests() {
     port: 5001,
     path: `/api/projects/${projectId}`,
     method: 'DELETE',
-    headers: { 'Cookie': updaterSessions['updater.brand@company.com'] }
+    headers: { 'Cookie': updaterSessions['akshra.ojha@company.com'] }
   });
   assert(updaterDelete.status === 403, 'Updater CANNOT delete projects (403 Forbidden strictly enforced)');
 
