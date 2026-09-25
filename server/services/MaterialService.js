@@ -24,6 +24,40 @@ const {
 } = require('../utils');
 const { calculateCrunchedTimeline } = require('../crunchUtils');
 const { getMaterialLeadTime } = require('../constants');
+const { storageService } = require('./StorageService');
+
+async function externalizeArtworkFiles(artworkFiles, projectId, materialId, user) {
+  if (!Array.isArray(artworkFiles)) return [];
+
+  return Promise.all(artworkFiles.map(async (file) => {
+    if (!file || typeof file.url !== 'string' || !file.url.startsWith('data:')) return file;
+
+    const match = file.url.match(/^data:([^;,]+)?(?:;base64)?,(.*)$/s);
+    if (!match) throw AppError.validation(`Artwork file '${file.name || 'unnamed'}' has an invalid data URL.`);
+
+    const buffer = Buffer.from(match[2], 'base64');
+    const stored = await storageService.storeDocument(buffer, {
+      filename: file.name,
+      mimeType: file.type || match[1] || 'application/octet-stream',
+      entity: 'ARTWORK',
+      entityId: `${projectId}/${materialId}`,
+      version: file.version || 1,
+      owner: user.email
+    });
+
+    return {
+      ...file,
+      url: `/api/storage?key=${encodeURIComponent(stored.storageKey)}`,
+      storageKey: stored.storageKey,
+      storageId: stored.storageId,
+      storageProvider: stored.provider,
+      checksumSha256: stored.checksumSha256,
+      size: stored.sizeBytes,
+      type: stored.mimeType,
+      uploadedAt: stored.uploadedAt
+    };
+  }));
+}
 
 // ── Helper: find project and material ─────────────────────────────────────────
 
@@ -473,7 +507,7 @@ async function rejectSpecSheet(projectId, mIdx, reason, user) {
 async function updateArtwork(projectId, mIdx, artworkFiles, variants, user, options = {}) {
   const { p, m } = await getProjectAndMaterial(projectId, mIdx);
 
-  m.artworkFiles = artworkFiles || [];
+  m.artworkFiles = await externalizeArtworkFiles(artworkFiles || [], p.id, m.id, user);
   m.artworkCode = getArtworkCode(m.pmCode);
 
   if (Array.isArray(variants)) {
