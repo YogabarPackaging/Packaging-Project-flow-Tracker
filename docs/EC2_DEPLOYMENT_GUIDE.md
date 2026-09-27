@@ -291,34 +291,3 @@ Whenever you have new changes, simply SSH in and run:
 ```bash
 ./deploy.sh
 ```
-
----
-
-## Step 9: Troubleshooting Common Issues
-
-### 9.1 `net::ERR_CONTENT_LENGTH_MISMATCH 200 (OK)`
-If the browser console displays `net::ERR_CONTENT_LENGTH_MISMATCH` when calling `/api/projects`:
-1. **Nginx Proxy Buffer Permissions:**
-   When upstream responses exceed in-memory buffers, Nginx attempts to write temporary files to `/var/lib/nginx/proxy`. If permissions are restricted to `root`:
-   ```bash
-   sudo chown -R www-data:www-data /var/lib/nginx
-   sudo chmod -R 700 /var/lib/nginx
-   ```
-2. **Disable Disk Temp Buffering:**
-   Ensure `/etc/nginx/sites-available/pkg-tracker` includes:
-   ```nginx
-   proxy_buffering off;
-   proxy_max_temp_file_size 0;
-   proxy_buffer_size 128k;
-   proxy_buffers 4 256k;
-   proxy_busy_buffers_size 256k;
-   ```
-   Then test and reload:
-   ```bash
-   sudo nginx -t && sudo systemctl reload nginx
-   ```
-3. **Check Nginx Error Logs:**
-   ```bash
-   sudo tail -n 50 /var/log/nginx/error.log
-   ```
-

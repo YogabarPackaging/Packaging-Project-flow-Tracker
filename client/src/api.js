@@ -2,11 +2,53 @@ import axios from 'axios';
 
 const api = axios.create({ baseURL: '/api', withCredentials: true });
 
+// Attach Authorization header if a token is saved in localStorage (dual-layer auth: works over HTTP, HTTPS, or when cookies are blocked)
+api.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem('pkg_token');
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch {}
+  return config;
+});
+
+// Capture token on successful login, signup, or profile load
+api.interceptors.response.use(
+  (response) => {
+    if (response.data && response.data.token) {
+      try {
+        localStorage.setItem('pkg_token', response.data.token);
+      } catch {}
+    }
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (error.config?.url?.includes('/auth/me')) {
+        try {
+          localStorage.removeItem('pkg_token');
+        } catch {}
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth & User Management
 export const getMe = () => api.get('/auth/me');
 export const login = (email, password) => api.post('/auth/login', { email, password });
 export const signup = (name, email, password, confirmPassword) => api.post('/auth/signup', { name, email, password, confirmPassword });
-export const logout = () => api.post('/auth/logout');
+export const logout = async () => {
+  try {
+    return await api.post('/auth/logout');
+  } finally {
+    try {
+      localStorage.removeItem('pkg_token');
+    } catch {}
+  }
+};
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email });
 export const changePassword = (password, confirmPassword) => api.post('/auth/change-password', { password, confirmPassword });
 export const updateMyProfile = (data) => api.put('/auth/profile', data);

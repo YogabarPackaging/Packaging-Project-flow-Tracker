@@ -27,6 +27,7 @@ const apiDocsRoutes = require('./routes/apiDocsRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5001;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 

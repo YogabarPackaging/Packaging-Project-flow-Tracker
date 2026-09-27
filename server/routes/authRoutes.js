@@ -8,12 +8,25 @@ const { authMiddleware, requireAdmin, requireSuperAdmin } = require('../middlewa
 const { UsersRepo, SessionsRepo } = require('../db/repository');
 const { authRateLimiter } = require('../middleware/rateLimiter');
 
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  secure: process.env.NODE_ENV === 'production'
-};
+function getCookieOptions(req) {
+  let isSecure = false;
+  if (process.env.COOKIE_SECURE === 'true') {
+    isSecure = true;
+  } else if (process.env.COOKIE_SECURE === 'false') {
+    isSecure = false;
+  } else {
+    // Only set secure: true if the connection is actually HTTPS (or proxied as HTTPS)
+    const isHttps = req ? (req.secure || req.headers['x-forwarded-proto'] === 'https') : false;
+    isSecure = process.env.NODE_ENV === 'production' && isHttps;
+  }
+
+  return {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure: isSecure
+  };
+}
 
 // GET /api/auth/me — restore session
 router.get('/me', authMiddleware, (req, res) => {
@@ -31,8 +44,9 @@ router.post('/login', authRateLimiter, async (req, res) => {
   if (isSuperAdminEmail) {
     if (password !== SUPERADMIN.pass) return res.status(401).json({ error: 'Incorrect admin password' });
     const token = '__superadmin__';
-    res.cookie('pkg_session', token, COOKIE_OPTIONS);
+    res.cookie('pkg_session', token, getCookieOptions(req));
     return res.json({
+      token,
       user: {
         email: SUPERADMIN.email || 'alexsander@company.com',
         name: SUPERADMIN.name || 'Alexsander',
@@ -73,8 +87,9 @@ router.post('/login', authRateLimiter, async (req, res) => {
   store.sessions[token] = email;
   await SessionsRepo.create(token, email).catch(() => {});
 
-  res.cookie('pkg_session', token, COOKIE_OPTIONS);
+  res.cookie('pkg_session', token, getCookieOptions(req));
   res.json({
+    token,
     user: {
       email,
       name: user.name,
@@ -131,8 +146,9 @@ router.post('/signup', authRateLimiter, async (req, res) => {
   store.sessions[token] = email;
   await SessionsRepo.create(token, email).catch(() => {});
 
-  res.cookie('pkg_session', token, COOKIE_OPTIONS);
+  res.cookie('pkg_session', token, getCookieOptions(req));
   res.json({
+    token,
     user: {
       email,
       name: name.trim(),
@@ -154,11 +170,7 @@ router.post('/logout', async (req, res) => {
     delete store.sessions[token];
     await SessionsRepo.delete(token).catch(() => {});
   }
-  res.clearCookie('pkg_session', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
-  });
+  res.clearCookie('pkg_session', getCookieOptions(req));
   res.json({ ok: true });
 });
 
