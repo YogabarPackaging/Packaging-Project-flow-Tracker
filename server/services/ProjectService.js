@@ -78,14 +78,14 @@ function buildMaterial(rawMat, idx, briefDate, existing = null) {
     specs: (rawMat.specs && Object.keys(rawMat.specs).length > 0)
       ? rawMat.specs
       : (existing?.specs || {}),
-    specSignoff: existing?.specSignoff || rawMat.specSignoff || null,
-    specSheet: rawMat.specSheet || existing?.specSheet || null,
-    artworkFiles: rawMat.artworkFiles || rawMat.specSheet?.artworkFiles || existing?.artworkFiles || existing?.specSheet?.artworkFiles || [],
+    specSignoff: rawMat.specSignoff !== undefined ? rawMat.specSignoff : (existing?.specSignoff || null),
+    specSheet: rawMat.specSheet !== undefined ? rawMat.specSheet : (existing?.specSheet || null),
+    artworkFiles: Array.isArray(rawMat.artworkFiles) ? rawMat.artworkFiles : (rawMat.specSheet?.artworkFiles || existing?.artworkFiles || existing?.specSheet?.artworkFiles || []),
     poStatus: existing?.poStatus || rawMat.poStatus || 'RFQ in progress',
     poNumber: existing?.poNumber || (rawMat.poNumber || '').trim(),
     // Pass 5 Versioning & Metadata
-    artworkVersions: existing?.artworkVersions || rawMat.artworkVersions || [],
-    specSheetVersions: existing?.specSheetVersions || rawMat.specSheetVersions || [],
+    artworkVersions: Array.isArray(rawMat.artworkVersions) ? rawMat.artworkVersions : (existing?.artworkVersions || []),
+    specSheetVersions: Array.isArray(rawMat.specSheetVersions) ? rawMat.specSheetVersions : (existing?.specSheetVersions || []),
     createdAt: existing?.createdAt || rawMat.createdAt || new Date().toISOString(),
     createdBy: existing?.createdBy || rawMat.createdBy || null
   };

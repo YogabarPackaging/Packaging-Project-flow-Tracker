@@ -40,6 +40,66 @@ router.use('/:id', (req, res, next) => {
   next();
 });
 
+// Helper: Strip oversized base64 data payloads from project listing to keep list responses lightweight (<100KB)
+// and prevent reverse proxy buffer overflows / ERR_CONTENT_LENGTH_MISMATCH in production.
+function sanitizeProjectForList(p) {
+  if (!p || !Array.isArray(p.materials)) return p;
+  const cleanMaterials = p.materials.map(m => {
+    let cleanMat = { ...m };
+    if (Array.isArray(cleanMat.variants)) {
+      cleanMat.variants = cleanMat.variants.map(v => {
+        if (v && v.artworkUrl && typeof v.artworkUrl === 'string' && v.artworkUrl.startsWith('data:') && v.artworkUrl.length > 2048) {
+          return { ...v, artworkUrl: '', hasArtwork: true };
+        }
+        return v;
+      });
+    }
+    if (cleanMat.artworkUrl && typeof cleanMat.artworkUrl === 'string' && cleanMat.artworkUrl.startsWith('data:') && cleanMat.artworkUrl.length > 2048) {
+      cleanMat.artworkUrl = '';
+      cleanMat.hasArtwork = true;
+    }
+    if (Array.isArray(cleanMat.artworkFiles)) {
+      cleanMat.artworkFiles = cleanMat.artworkFiles.map(f => {
+        if (f && f.url && typeof f.url === 'string' && f.url.startsWith('data:') && f.url.length > 2048) {
+          return { ...f, url: '', hasData: true };
+        }
+        return f;
+      });
+    }
+    if (cleanMat.specSheet) {
+      cleanMat.specSheet = { ...cleanMat.specSheet };
+      if (cleanMat.specSheet.sourcePdfData && typeof cleanMat.specSheet.sourcePdfData === 'string' && cleanMat.specSheet.sourcePdfData.startsWith('data:')) {
+        cleanMat.specSheet.sourcePdfData = '';
+      }
+      if (Array.isArray(cleanMat.specSheet.artworkFiles)) {
+        cleanMat.specSheet.artworkFiles = cleanMat.specSheet.artworkFiles.map(f => {
+          if (f && f.url && typeof f.url === 'string' && f.url.startsWith('data:') && f.url.length > 2048) {
+            return { ...f, url: '', hasData: true };
+          }
+          return f;
+        });
+      }
+      if (Array.isArray(cleanMat.specSheet.variants)) {
+        cleanMat.specSheet.variants = cleanMat.specSheet.variants.map(v => {
+          if (v && v.artworkUrl && typeof v.artworkUrl === 'string' && v.artworkUrl.startsWith('data:') && v.artworkUrl.length > 2048) {
+            return { ...v, artworkUrl: '', hasArtwork: true };
+          }
+          return v;
+        });
+      }
+    }
+    if (Array.isArray(cleanMat.artworkVersions) && cleanMat.artworkVersions.length > 0) {
+      cleanMat.artworkVersions = cleanMat.artworkVersions.map(v => ({
+        ...v,
+        files: (v.files || []).map(f => (f && f.url && typeof f.url === 'string' && f.url.startsWith('data:') && f.url.length > 2048) ? { ...f, url: '' } : f),
+        variants: (v.variants || []).map(varItem => (varItem && varItem.artworkUrl && typeof varItem.artworkUrl === 'string' && varItem.artworkUrl.startsWith('data:') && varItem.artworkUrl.length > 2048) ? { ...varItem, artworkUrl: '' } : varItem)
+      }));
+    }
+    return cleanMat;
+  });
+  return { ...p, materials: cleanMaterials };
+}
+
 // GET /api/projects
 router.get('/', authMiddleware, async (req, res) => {
   const includeDeleted = req.query.includeDeleted === 'true';
@@ -62,14 +122,17 @@ router.get('/', authMiddleware, async (req, res) => {
       .filter(Boolean);
   }
 
+  // Sanitize list items so raw 30MB base64 images don't blow up list response or trigger ERR_CONTENT_LENGTH_MISMATCH
+  const sanitizedList = filtered.map(sanitizeProjectForList);
+
   // Server-side pagination support (Enterprise Pass 6)
   const page = parseInt(req.query.page, 10);
   const limit = parseInt(req.query.limit, 10);
   if (!isNaN(page) && page > 0 && !isNaN(limit) && limit > 0) {
-    const total = filtered.length;
+    const total = sanitizedList.length;
     const totalPages = Math.ceil(total / limit) || 1;
     const startIndex = (page - 1) * limit;
-    const paginated = filtered.slice(startIndex, startIndex + limit);
+    const paginated = sanitizedList.slice(startIndex, startIndex + limit);
     return res.json({
       projects: paginated,
       pagination: {
@@ -83,7 +146,7 @@ router.get('/', authMiddleware, async (req, res) => {
     });
   }
 
-  return res.json({ projects: filtered });
+  return res.json({ projects: sanitizedList });
 });
 
 // GET /api/projects/:id — Get single project by ID (Authenticated users)
