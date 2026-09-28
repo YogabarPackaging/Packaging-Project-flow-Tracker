@@ -21,6 +21,7 @@ const { logActivity, logAdvance } = require('../services/AuditService');
 const { loadProject, saveProject } = require('../services/PersistenceService');
 const { validateCreateProject, validateUpdateProject, validateDate } = require('../validators/projectValidator');
 const { validateFileList } = require('../middleware/uploadSecurity');
+const { cleanValue } = require('../utils/sanitizer');
 
 const { isDbAvailable } = require('../db');
 
@@ -256,79 +257,98 @@ router.delete('/:id', authMiddleware, requireSuperAdmin, async (req, res, next) 
 });
 
 // PUT /api/projects/:id/fgcode — Inline FG code edit (Updaters, Admins, Super Admin)
+router.put('/:id/fgcode', authMiddleware, requireUpdater, async (req, res, next) => {
+  try {
+    const p = store.projects.find(x => String(x.id) === String(req.params.id));
+    if (!p) return res.status(404).json({ error: 'Not found' });
+    const oldVal = p.fgCode || '';
+    p.fgCode = cleanValue(req.body.fgCode);
 
-router.put('/:id/fgcode', authMiddleware, requireUpdater, (req, res) => {
-  const p = store.projects.find(x => String(x.id) === String(req.params.id));
-  if (!p) return res.status(404).json({ error: 'Not found' });
-  const oldVal = p.fgCode || '';
-  p.fgCode = (req.body.fgCode || '').trim();
+    logActivity(p, {
+      action: 'FGCODE_UPDATE',
+      title: 'FG Item Code Updated',
+      details: `Updated FG Code from '${oldVal || 'empty'}' to '${p.fgCode || 'empty'}'`,
+      field: 'fgCode',
+      oldValue: oldVal,
+      newValue: p.fgCode
+    }, req.user);
 
-  logActivity(p, {
-    action: 'FGCODE_UPDATE',
-    title: 'FG Item Code Updated',
-    details: `Updated FG Code from '${oldVal || 'empty'}' to '${p.fgCode}'`,
-    field: 'fgCode',
-    oldValue: oldVal,
-    newValue: p.fgCode
-  }, req.user);
-
-  res.json({ project: p });
+    await saveProject(p, 'update');
+    res.json({ project: p });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // PUT /api/projects/:id/supplier — Inline supplier edit (Updaters, Admins, Super Admin)
-router.put('/:id/supplier', authMiddleware, requireUpdater, (req, res) => {
-  const p = store.projects.find(x => String(x.id) === String(req.params.id));
-  if (!p) return res.status(404).json({ error: 'Not found' });
-  const oldVal = p.supplier || 'TBD';
-  p.supplier = (req.body.supplier || '').trim() || 'TBD';
+router.put('/:id/supplier', authMiddleware, requireUpdater, async (req, res, next) => {
+  try {
+    const p = store.projects.find(x => String(x.id) === String(req.params.id));
+    if (!p) return res.status(404).json({ error: 'Not found' });
+    const oldVal = p.supplier || 'TBD';
+    p.supplier = cleanValue(req.body.supplier);
 
-  logActivity(p, {
-    action: 'SUPPLIER_UPDATE',
-    title: 'Project Supplier Updated',
-    details: `Updated Supplier from '${oldVal}' to '${p.supplier}'`,
-    field: 'supplier',
-    oldValue: oldVal,
-    newValue: p.supplier
-  }, req.user);
+    logActivity(p, {
+      action: 'SUPPLIER_UPDATE',
+      title: 'Project Supplier Updated',
+      details: `Updated Supplier from '${oldVal}' to '${p.supplier || 'TBD'}'`,
+      field: 'supplier',
+      oldValue: oldVal,
+      newValue: p.supplier
+    }, req.user);
 
-  res.json({ project: p });
+    await saveProject(p, 'update');
+    res.json({ project: p });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // PUT /api/projects/:id/factory — Inline factory edit (Updaters, Admins, Super Admin)
-router.put('/:id/factory', authMiddleware, requireUpdater, (req, res) => {
-  const p = store.projects.find(x => String(x.id) === String(req.params.id));
-  if (!p) return res.status(404).json({ error: 'Not found' });
-  const oldVal = p.factory || 'TBD';
-  p.factory = (req.body.factory || '').trim() || 'TBD';
+router.put('/:id/factory', authMiddleware, requireUpdater, async (req, res, next) => {
+  try {
+    const p = store.projects.find(x => String(x.id) === String(req.params.id));
+    if (!p) return res.status(404).json({ error: 'Not found' });
+    const oldVal = p.factory || 'TBD';
+    p.factory = cleanValue(req.body.factory);
 
-  logActivity(p, {
-    action: 'FACTORY_UPDATE',
-    title: 'Target Factory Updated',
-    details: `Updated Factory from '${oldVal}' to '${p.factory}'`,
-    field: 'factory',
-    oldValue: oldVal,
-    newValue: p.factory
-  }, req.user);
+    logActivity(p, {
+      action: 'FACTORY_UPDATE',
+      title: 'Target Factory Updated',
+      details: `Updated Factory from '${oldVal}' to '${p.factory || 'TBD'}'`,
+      field: 'factory',
+      oldValue: oldVal,
+      newValue: p.factory
+    }, req.user);
 
-  res.json({ project: p });
+    await saveProject(p, 'update');
+    res.json({ project: p });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // PUT /api/projects/:id/description — Inline description edit (Updaters, Admins, Super Admin)
-router.put('/:id/description', authMiddleware, requireUpdater, (req, res) => {
-  const p = store.projects.find(x => String(x.id) === String(req.params.id));
-  if (!p) return res.status(404).json({ error: 'Not found' });
-  p.description = (req.body.description || '').trim();
-  p.comments = p.description;
+router.put('/:id/description', authMiddleware, requireUpdater, async (req, res, next) => {
+  try {
+    const p = store.projects.find(x => String(x.id) === String(req.params.id));
+    if (!p) return res.status(404).json({ error: 'Not found' });
+    p.description = cleanValue(req.body.description);
+    p.comments = p.description;
 
-  logActivity(p, {
-    action: 'DESCRIPTION_UPDATE',
-    title: 'Project Description Updated',
-    details: `Updated description/comments: "${p.description.slice(0, 80)}${p.description.length > 80 ? '...' : ''}"`,
-    field: 'description',
-    newValue: p.description
-  }, req.user);
+    logActivity(p, {
+      action: 'DESCRIPTION_UPDATE',
+      title: 'Project Description Updated',
+      details: `Updated description/comments: "${(p.description || '').slice(0, 80)}"`,
+      field: 'description',
+      newValue: p.description
+    }, req.user);
 
-  res.json({ project: p });
+    await saveProject(p, 'update');
+    res.json({ project: p });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // POST /api/projects/:id/advance — Advance all materials at min stage (Updaters, Admins, Super Admin)

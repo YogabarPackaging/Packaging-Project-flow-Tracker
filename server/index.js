@@ -39,6 +39,16 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
+const { sanitizerMiddleware } = require('./utils/sanitizer');
+app.use(sanitizerMiddleware);
+
+// ── Static Uploads Serving ─────────────────────────────────────────
+const path = require('path');
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+app.use('/api/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir));
 
 // ── Observability & Request Metrics ────────────────────────────────
 const metrics = {
@@ -175,8 +185,6 @@ app.get('/api/metrics', metricsHandler);
 app.get('/api/v1/metrics', metricsHandler);
 
 // ── Static Frontend & SPA Fallback (Production) ───────────────────
-const path = require('path');
-const fs = require('fs');
 const clientDistPath = path.join(__dirname, '../client/dist');
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));

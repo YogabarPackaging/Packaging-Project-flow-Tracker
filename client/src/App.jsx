@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  getMe, logout, getProjects, createProject, updateProject, deleteProject,
+  getMe, logout, getProjects, getProject, createProject, updateProject, deleteProject,
   advanceProject, revokeProject, launchProject, changeBriefDate,
   advanceMaterial, revokeMaterial, saveSpecs, getLogs, getSeenAt, updateSpecInLibrary,
   exportProjectsExcel
@@ -19,6 +19,7 @@ import RACI from './components/RACI/RACI';
 import Risks from './components/Risks/Risks';
 import SpecsHub from './components/Specs/SpecsHub';
 import ArtworkHub from './components/Artworks/ArtworkHub';
+import UsersHub from './components/UserManagement/UsersHub';
 
 import AddProjectPage from './components/Modals/AddProjectModal';
 import LaunchModal from './components/Modals/LaunchModal';
@@ -300,7 +301,7 @@ export default function App() {
     }
   };
 
-  const handleOpenSpecModal = (pidOrData, mIdx) => {
+  const handleOpenSpecModal = async (pidOrData, mIdx) => {
     if (typeof pidOrData === 'object' && pidOrData !== null && pidOrData.material) {
       setSpecModalData(pidOrData);
       return;
@@ -308,6 +309,15 @@ export default function App() {
     const p = projects.find(x => String(x.id) === String(pidOrData));
     if (!p || !p.materials || !p.materials[mIdx]) return;
     setSpecModalData({ project: p, material: p.materials[mIdx], mIdx });
+
+    if (p?.id) {
+      try {
+        const res = await getProject(p.id);
+        if (res.data?.project && res.data.project.materials?.[mIdx]) {
+          setSpecModalData({ project: res.data.project, material: res.data.project.materials[mIdx], mIdx });
+        }
+      } catch (e) {}
+    }
   };
 
   const handleSaveSpecs = async (pid, mIdx, specs) => {
@@ -334,7 +344,7 @@ export default function App() {
     setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
   };
 
-  const handleOpenArtworkModal = (project, material, mIdx) => {
+  const handleOpenArtworkModal = async (project, material, mIdx) => {
     let p = project;
     if (typeof project === 'string' || typeof project === 'number') {
       p = projects.find(x => String(x.id) === String(project));
@@ -346,6 +356,24 @@ export default function App() {
       material: mat,
       mIdx
     });
+
+    if (p?.id) {
+      try {
+        const res = await getProject(p.id);
+        if (res.data?.project) {
+          const freshP = res.data.project;
+          const freshMat = (mIdx !== null && mIdx !== undefined && freshP.materials) ? freshP.materials[mIdx] : freshP.materials?.[0];
+          setArtworkViewerState(prev => {
+            if (!prev.isOpen || prev.project?.id !== freshP.id) return prev;
+            return {
+              ...prev,
+              project: freshP,
+              material: freshMat || prev.material
+            };
+          });
+        }
+      } catch (e) {}
+    }
   };
 
   const handleArtworkUpdated = (updatedProject) => {
@@ -596,6 +624,13 @@ export default function App() {
                 onOpenProject={handleOpenProjectById}
                 onRefreshProjects={fetchProjects}
                 showToast={showToast}
+              />
+            )}
+            {activeTab === 'users' && (
+              <UsersHub
+                currentUser={currentUser}
+                showToast={showToast}
+                onUserUpdated={(updated) => setCurrentUser(prev => ({ ...prev, ...updated }))}
               />
             )}
             {activeTab === 'add-project' && (

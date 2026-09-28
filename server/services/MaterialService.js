@@ -24,6 +24,7 @@ const {
 } = require('../utils');
 const { calculateCrunchedTimeline } = require('../crunchUtils');
 const { getMaterialLeadTime } = require('../constants');
+const { persistArtworkFiles, persistMaterialFiles } = require('./UploadStorageService');
 
 // ── Helper: find project and material ─────────────────────────────────────────
 
@@ -253,6 +254,9 @@ async function saveSpecSheet(projectId, mIdx, specSheet, submitForCheck, user) {
     specSheet.artworkFiles = m.artworkFiles;
   }
 
+  // Persist any base64 data URLs to permanent disk storage
+  persistMaterialFiles(m, m.artworkCode);
+
   // Sync flat m.specs for backward compatibility
   if (Array.isArray(specSheet.parameters)) {
     m.specs = m.specs || {};
@@ -473,8 +477,13 @@ async function rejectSpecSheet(projectId, mIdx, reason, user) {
 async function updateArtwork(projectId, mIdx, artworkFiles, variants, user, options = {}) {
   const { p, m } = await getProjectAndMaterial(projectId, mIdx);
 
-  m.artworkFiles = artworkFiles || [];
   m.artworkCode = getArtworkCode(m.pmCode);
+  const persistedFiles = persistArtworkFiles(artworkFiles || [], m.artworkCode);
+  m.artworkFiles = persistedFiles;
+  if (persistedFiles.length > 0 && persistedFiles[0].url) {
+    m.artworkUrl = persistedFiles[0].url;
+    m.artworkFileName = persistedFiles[0].name;
+  }
 
   if (Array.isArray(variants)) {
     m.variants = variants;
@@ -497,6 +506,8 @@ async function updateArtwork(projectId, mIdx, artworkFiles, variants, user, opti
     }
   }
 
+  persistMaterialFiles(m, m.artworkCode);
+
   // Pass 5 Artwork Versioning
   m.artworkVersions = m.artworkVersions || [];
   const prevVer = m.artworkVersions.length > 0 ? m.artworkVersions[m.artworkVersions.length - 1] : null;
@@ -515,7 +526,7 @@ async function updateArtwork(projectId, mIdx, artworkFiles, variants, user, opti
     materialName: m.name,
     pmCode: m.pmCode,
     artworkCode: m.artworkCode,
-    files: Array.isArray(artworkFiles) ? JSON.parse(JSON.stringify(artworkFiles)) : [],
+    files: Array.isArray(persistedFiles) ? JSON.parse(JSON.stringify(persistedFiles)) : [],
     variants: Array.isArray(variants) ? JSON.parse(JSON.stringify(variants)) : (m.variants || []),
     status: options.status || 'UPLOADED',
     uploadedBy: {

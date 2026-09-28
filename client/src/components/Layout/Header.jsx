@@ -64,6 +64,7 @@ export default function Header({
     stages:    { title: 'STAGE SOP GUIDE', sub: 'Standard operating procedures and stage quality gates' },
     raci:      { title: 'RACI MATRIX', sub: 'Cross-functional accountability mapping' },
     risks:     { title: 'RISK REGISTER', sub: 'Standard packaging risk management library' },
+    users:     { title: 'USERS DIRECTORY & ACCESS CONTROL', sub: 'Manage team directory, roles, permissions and CRUD operations' },
   };
 
   const currentMeta = pageTitles[activeTab] || pageTitles.tracker;

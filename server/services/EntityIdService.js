@@ -28,8 +28,8 @@ function generateId(prefix = 'ENT') {
     return `ACT-${Date.now()}-${rand}`;
   }
 
-  // Standard 6-digit sequence with entropy suffix for distributed safety
-  return `${prefix}-${seq}`;
+  // Standard unique identifier with timestamp and random entropy for distributed safety
+  return `${prefix}-${ts}-${rand}`;
 }
 
 function generateMaterialId() {

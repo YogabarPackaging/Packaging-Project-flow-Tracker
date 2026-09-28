@@ -4,14 +4,7 @@ const { calcMatMilestones, calcProjectMilestones, getArtworkCode } = require('..
 async function seedInitialData() {
   console.log('   🌱 Seeding Initial Settings and Sample Projects...');
 
-  // 1. Seed project sequence counter
-  await query(`
-    INSERT INTO app_settings (key, value)
-    VALUES ('project_counter', '1'::jsonb)
-    ON CONFLICT (key) DO NOTHING
-  `);
-
-  // 2. Check if projects already exist or if sample projects should be skipped
+  // 1. Check if projects already exist or if sample projects should be skipped
   if (process.env.SEED_SAMPLE_PROJECTS !== 'true') {
     console.log('   ℹ️ Skipping sample project seed (SEED_SAMPLE_PROJECTS is not set to true).');
     return;
@@ -161,11 +154,6 @@ async function seedInitialData() {
       dateStr: new Date().toLocaleDateString('en-GB')
     }])
   ]);
-
-  // Update sequence counter to 2
-  await query(`
-    UPDATE app_settings SET value = '2'::jsonb WHERE key = 'project_counter'
-  `);
 
   console.log('   ✅ Seeded sample project PRJ-001 with 2 materials into PostgreSQL.');
 }

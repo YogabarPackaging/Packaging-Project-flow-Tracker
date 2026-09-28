@@ -57,8 +57,20 @@ export const createTeamMember = (data) => api.post('/auth/users', data);
 export const updateTeamMember = (email, data) => api.put(`/auth/users/${encodeURIComponent(email)}`, data);
 export const deleteTeamMember = (email) => api.delete(`/auth/users/${encodeURIComponent(email)}`);
 
+// Roles & Permissions RBAC
+export const getRoles = () => api.get('/auth/roles');
+export const createRole = (data) => api.post('/auth/roles', data);
+export const updateRole = (id, data) => api.put(`/auth/roles/${encodeURIComponent(id)}`, data);
+export const deleteRole = (id) => api.delete(`/auth/roles/${encodeURIComponent(id)}`);
+export const getRolePermissions = (id) => api.get(`/auth/roles/${encodeURIComponent(id)}/permissions`);
+export const updateRolePermissions = (id, permissions) => api.put(`/auth/roles/${encodeURIComponent(id)}/permissions`, { permissions });
+export const getUserPermissions = (email) => api.get(`/auth/users/${encodeURIComponent(email)}/permissions`);
+export const updateUserPermissions = (email, permissions) => api.put(`/auth/users/${encodeURIComponent(email)}/permissions`, { permissions });
+export const getAllPermissions = () => api.get('/auth/permissions');
+
 // Projects
 export const getProjects = () => api.get('/projects');
+export const getProject = (id) => api.get(`/projects/${id}`);
 export const createProject = (data) => api.post('/projects', data);
 export const updateProject = (id, data) => api.put(`/projects/${id}`, data);
 export const deleteProject = (id) => api.delete(`/projects/${id}`);

@@ -6,6 +6,8 @@ const { SpecLibraryRepo, ProjectsRepo, LogsRepo } = require('../db/repository');
 const { isDbAvailable } = require('../db');
 const { convertPdfToNewSpecFormat, convertTextToSpecSheet } = require('../utils/specPdfParser');
 const { sanitizeFilename, validatePdfMagicBytes, MAX_FILE_SIZE_BYTES } = require('../middleware/uploadSecurity');
+const { persistDataUrlFile, persistMaterialFiles } = require('../services/UploadStorageService');
+const { saveProject } = require('../services/PersistenceService');
 
 // ── 1. POST /api/specs/convert-pdf — Convert uploaded PDF to new spec format
 router.post('/convert-pdf', authMiddleware, requireUpdater, async (req, res) => {
@@ -125,6 +127,16 @@ router.post('/library', authMiddleware, requireUpdater, async (req, res) => {
 
     const id = 'SPEC-LIB-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
 
+    let cleanPdfUrl = sourcePdfData || specData.sourcePdf?.dataUrl || null;
+    if (cleanPdfUrl && typeof cleanPdfUrl === 'string' && cleanPdfUrl.startsWith('data:')) {
+      const persistedPdf = persistDataUrlFile({
+        name: sourcePdfName || specData.sourcePdf?.fileName || 'spec.pdf',
+        url: cleanPdfUrl,
+        type: 'application/pdf'
+      }, itemCode || 'SPEC', 'documents');
+      cleanPdfUrl = persistedPdf.url;
+    }
+
     const newRecord = {
       id,
       specName: specName.trim(),
@@ -136,7 +148,8 @@ router.post('/library', authMiddleware, requireUpdater, async (req, res) => {
       projectName: projectName || '',
       materialName: materialName || '',
       sourcePdfName: sourcePdfName || specData.sourcePdf?.fileName || '',
-      sourcePdfData: sourcePdfData || specData.sourcePdf?.dataUrl || null,
+      sourcePdfData: cleanPdfUrl,
+      sourcePdfUrl: cleanPdfUrl,
       specData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -203,8 +216,9 @@ router.post('/library', authMiddleware, requireUpdater, async (req, res) => {
 
         if (isDbAvailable()) {
           LogsRepo.add(logEntry).catch(() => {});
-          ProjectsRepo.update(p.id, p).catch(() => {});
         }
+        persistMaterialFiles(p.materials[materialIdx]);
+        await saveProject(p, 'update');
       }
     }
 
@@ -335,12 +349,9 @@ router.post('/library/:id/apply', authMiddleware, requireUpdater, async (req, re
     store.advanceLogs = store.advanceLogs || [];
     store.advanceLogs.unshift(logEntry);
 
-    if (typeof store.saveLocalStore === 'function') {
-      store.saveLocalStore();
-    }
-
+    persistMaterialFiles(mat);
+    await saveProject(p, 'update');
     LogsRepo.add(logEntry).catch(() => {});
-    ProjectsRepo.update(p.id, p).catch(() => {});
 
     return res.json({ success: true, project: p, appliedSpec: libSpec });
   } catch (err) {

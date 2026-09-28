@@ -689,23 +689,41 @@ export default function SpecModal({
       const cleanOriginal = file.name.replace(/^AW-[^_]+_/, '').replace(/^PM-[^_]+_/, '');
       const standardizedName = file.name.startsWith(aw) ? file.name : `${aw}_${cleanOriginal}`;
 
-      // ── Image-only restriction ─────────────────────────────────────────
+      const isPdf = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf');
+
+      // ── Allowed image & document types ──────────────────────────────────
       const ALLOWED_IMAGE_TYPES = [
         'image/png', 'image/jpeg', 'image/jpg', 'image/gif',
         'image/webp', 'image/svg+xml', 'image/bmp', 'image/tiff'
       ];
-      const ALLOWED_EXTENSIONS = /\.(png|jpg|jpeg|gif|webp|svg|bmp|tiff|tif)$/i;
+      const ALLOWED_EXTENSIONS = /\.(png|jpg|jpeg|gif|webp|svg|bmp|tiff|tif|pdf|ai|psd)$/i;
 
       const isImage = ALLOWED_IMAGE_TYPES.includes(file.type) ||
-        (!file.type && ALLOWED_EXTENSIONS.test(file.name));
+        (!file.type && /\.(png|jpg|jpeg|gif|webp|svg|bmp|tiff|tif)$/i.test(file.name));
 
-      if (!isImage) {
+      if (!isImage && !isPdf) {
         const ext = file.name.split('.').pop()?.toUpperCase() || 'file';
         if (showToast) showToast(
-          `⛔ ${ext} files are not allowed. Only image formats (PNG, JPG, GIF, WebP, SVG) are accepted.`,
+          `⛔ ${ext} files are not supported. Please upload a PDF document or image format (PNG, JPG, WebP, SVG).`,
           'error'
         );
         return resolve(null);
+      }
+
+      if (isPdf) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve({
+            name: standardizedName,
+            url: e.target.result,
+            type: 'application/pdf',
+            size: file.size,
+            uploadedAt: new Date().toISOString()
+          });
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+        return;
       }
 
       const reader = new FileReader();
@@ -1990,7 +2008,7 @@ export default function SpecModal({
                   </button>
                 )}
                 <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px' }}>
-                  Supported formats: PNG, JPG, GIF, WebP, SVG (Max 30MB)
+                  Supported formats: PDF, PNG, JPG, WebP, SVG, AI, PSD (Max 30MB)
                 </div>
               </div>
             ) : (
@@ -3320,14 +3338,14 @@ export default function SpecModal({
         <input
           ref={artworkInputRef}
           type="file"
-          accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/bmp,image/tiff"
+          accept="image/*,application/pdf,.pdf,.ai,.psd"
           style={{ display: 'none' }}
           onChange={handleGeneralArtworkUpload}
         />
         <input
           ref={variantArtworkInputRef}
           type="file"
-          accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/bmp,image/tiff"
+          accept="image/*,application/pdf,.pdf,.ai,.psd"
           style={{ display: 'none' }}
           onChange={handleVariantArtworkUpload}
         />
@@ -3620,17 +3638,29 @@ export default function SpecModal({
                       style={{ width: '100%', height: isFullScreenPreview ? 'calc(100vh - 55px)' : '75vh', border: 'none', display: 'block' }}
                     />
                   ) : (
-                    <img
-                      src={viewUrl}
-                      alt={previewArtworkModal.name || 'Artwork'}
-                      style={{
-                        maxWidth: '100%',
-                        maxHeight: isFullScreenPreview ? 'calc(100vh - 75px)' : '78vh',
-                        objectFit: 'contain',
-                        borderRadius: '6px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
-                      }}
-                    />
+                    <>
+                      <img
+                        src={viewUrl}
+                        alt={previewArtworkModal.name || 'Artwork'}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          const fallback = e.target.nextElementSibling;
+                          if (fallback) fallback.style.display = 'block';
+                        }}
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: isFullScreenPreview ? 'calc(100vh - 75px)' : '78vh',
+                          objectFit: 'contain',
+                          borderRadius: '6px',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                        }}
+                      />
+                      <div style={{ display: 'none', textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
+                        <div style={{ fontSize: '28px', marginBottom: '8px' }}>🖼️</div>
+                        <p style={{ fontWeight: 600, fontSize: '13px', color: '#f1f5f9' }}>Image Preview Unavailable</p>
+                        <p style={{ fontSize: '11px' }}>The artwork proof could not be loaded.</p>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

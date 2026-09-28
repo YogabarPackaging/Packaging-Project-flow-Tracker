@@ -36,21 +36,9 @@ export default function ArtworkViewerModal({
   const [rotation, setRotation] = useState(0);
   const [activeFileIdx, setActiveFileIdx] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef(null);
   const replaceFileInputRef = useRef(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      setZoom(1);
-      setRotation(0);
-      setActiveFileIdx(0);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   const pmCode = material?.pmCode || material?.specSheet?.docHeader?.itemCode || 'PM-TBD';
   const awCode = material?.artworkCode || getArtworkCode(pmCode);
@@ -74,6 +62,23 @@ export default function ArtworkViewerModal({
 
   const files = rawFiles;
   const activeFile = files[activeFileIdx] || files[0] || null;
+
+  useEffect(() => {
+    setImageError(false);
+  }, [activeFileIdx, activeFile?.url]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      setZoom(1);
+      setRotation(0);
+      setActiveFileIdx(0);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Detect if active file is a PDF
   const isPdf = Boolean(
@@ -827,29 +832,67 @@ export default function ArtworkViewerModal({
             </div>
           ) : isImage ? (
             /* ── IMAGE PREVIEW WITH ZOOM & ROTATE ── */
-            <div
-              style={{
-                display: 'inline-block',
-                transition: 'transform 0.15s ease-out',
-                transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                transformOrigin: 'center center',
-                boxShadow: 'var(--shadow-md)',
-                borderRadius: 'var(--radius-md)',
-                overflow: 'hidden',
-                background: '#ffffff'
-              }}
-            >
-              <img
-                src={activeFile.url}
-                alt={activeFile.name}
+            (activeFile?.url && !imageError) ? (
+              <div
                 style={{
-                  maxWidth: '85vw',
-                  maxHeight: '68vh',
-                  display: 'block',
-                  objectFit: 'contain'
+                  display: 'inline-block',
+                  transition: 'transform 0.15s ease-out',
+                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                  transformOrigin: 'center center',
+                  boxShadow: 'var(--shadow-md)',
+                  borderRadius: 'var(--radius-md)',
+                  overflow: 'hidden',
+                  background: '#ffffff'
                 }}
-              />
-            </div>
+              >
+                <img
+                  src={activeFile.url}
+                  alt={activeFile.name}
+                  onError={() => setImageError(true)}
+                  style={{
+                    maxWidth: '85vw',
+                    maxHeight: '68vh',
+                    display: 'block',
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '45px 35px',
+                  maxWidth: '480px',
+                  margin: 'auto',
+                  background: 'var(--card-bg, #FFFFFF)',
+                  border: '1px solid var(--border-color, #E2EBE6)',
+                  borderRadius: 'var(--radius-lg, 12px)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.06)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+                  <Palette size={40} style={{ color: 'var(--teal, #00bfa5)' }} />
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  {activeFile?.name || 'Artwork Proof File'}
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: 1.5 }}>
+                  Linked Code: <strong style={{ color: 'var(--teal, #00bfa5)' }}>{awCode}</strong> &bull; PM Code: <strong>{pmCode}</strong>
+                  <br />
+                  Artwork file registered. Image proof is missing or pending upload. Please click below to upload proof.
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => replaceFileInputRef.current?.click()}
+                  disabled={isUploading}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', margin: '0 auto' }}
+                >
+                  <RefreshCw size={13} />
+                  {isUploading ? 'Uploading...' : 'Upload / Update Artwork Proof'}
+                </button>
+              </div>
+            )
           ) : (
             /* ── FALLBACK FOR OTHER VECTOR / BINARY ASSETS ── */
             <div

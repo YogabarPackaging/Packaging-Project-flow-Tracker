@@ -5,8 +5,25 @@ const store = require('../store');
 const { hashPass, genTempPass } = require('../utils');
 const { SUPERADMIN } = require('../constants');
 const { authMiddleware, requireAdmin, requireSuperAdmin } = require('../middleware/auth');
-const { UsersRepo, SessionsRepo } = require('../db/repository');
+const { UsersRepo, SessionsRepo, RolesRepo, RolesPermissionsRepo, UsersPermissionsRepo } = require('../db/repository');
+const { PERMISSION_ROLES } = require('../middleware/permissions');
 const { authRateLimiter } = require('../middleware/rateLimiter');
+const { persistDataUrlFile } = require('../services/UploadStorageService');
+
+function cleanUserAvatar(avatar, username = 'user') {
+  if (!avatar || typeof avatar !== 'string') return '';
+  const trimmed = avatar.trim();
+  if (trimmed.startsWith('data:')) {
+    const safeName = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const saved = persistDataUrlFile({
+      name: `${safeName}_avatar.png`,
+      url: trimmed,
+      type: 'image/png'
+    }, 'user', 'documents');
+    return saved.url;
+  }
+  return trimmed;
+}
 
 function getCookieOptions(req) {
   let isSecure = false;
@@ -218,7 +235,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
     if (name) SUPERADMIN.name = name.trim();
     if (newEmail) SUPERADMIN.email = newEmail;
     if (mobile !== undefined) SUPERADMIN.mobile = mobile.trim();
-    if (avatar !== undefined) SUPERADMIN.avatar = avatar.trim();
+    if (avatar !== undefined) SUPERADMIN.avatar = cleanUserAvatar(avatar, 'superadmin');
 
     return res.json({
       user: {
@@ -257,7 +274,11 @@ router.put('/profile', authMiddleware, async (req, res) => {
   const updates = {};
   if (name) { user.name = name.trim(); updates.name = name.trim(); }
   if (mobile !== undefined) { user.mobile = mobile.trim(); updates.mobile = mobile.trim(); }
-  if (avatar !== undefined) { user.avatar = avatar.trim(); updates.avatar = avatar.trim(); }
+  if (avatar !== undefined) {
+    const cleanedAvatar = cleanUserAvatar(avatar, user.email || 'user');
+    user.avatar = cleanedAvatar;
+    updates.avatar = cleanedAvatar;
+  }
 
   await UsersRepo.update(finalEmail, updates).catch(() => {});
 
@@ -342,6 +363,7 @@ router.post('/users', authMiddleware, requireAdmin, async (req, res) => {
   const colors = ['#7c3aed', '#0284c7', '#00bfa5', '#ff6d00', '#e040fb', '#14b8a6', '#00d4c8'];
   const color = colors[Math.floor(Math.random() * colors.length)];
 
+  const cleanedAvatar = cleanUserAvatar(avatar, email);
   const newUser = {
     name: name.trim(),
     role,
@@ -349,7 +371,7 @@ router.post('/users', authMiddleware, requireAdmin, async (req, res) => {
     team: team.trim(),
     department: (department.trim() || (team.toLowerCase().includes('packaging') ? team : `${team} Packaging`)).replace(/\bOperations\b/gi, 'Packaging'),
     mobile: mobile.trim(),
-    avatar: avatar.trim() || '',
+    avatar: cleanedAvatar,
     color,
     passwordHash: hashPass(password),
     mustChangePw: false,
@@ -391,7 +413,7 @@ router.put('/users/:email', authMiddleware, requireAdmin, async (req, res) => {
     if (team) SUPERADMIN.team = team.trim();
     if (department) SUPERADMIN.department = department.trim().replace(/\bOperations\b/gi, 'Packaging');
     if (mobile !== undefined) SUPERADMIN.mobile = mobile.trim();
-    if (avatar !== undefined) SUPERADMIN.avatar = avatar.trim();
+    if (avatar !== undefined) SUPERADMIN.avatar = cleanUserAvatar(avatar, 'superadmin');
     if (newEmail && newEmail !== (SUPERADMIN.email && SUPERADMIN.email.toLowerCase())) {
       SUPERADMIN.email = newEmail;
     }
@@ -450,7 +472,11 @@ router.put('/users/:email', authMiddleware, requireAdmin, async (req, res) => {
     updates.department = deptClean;
   }
   if (mobile !== undefined) { user.mobile = mobile.trim(); updates.mobile = mobile.trim(); }
-  if (avatar !== undefined) { user.avatar = avatar.trim(); updates.avatar = avatar.trim(); }
+  if (avatar !== undefined) {
+    const cleanedAvatar = cleanUserAvatar(avatar, finalEmail);
+    user.avatar = cleanedAvatar;
+    updates.avatar = cleanedAvatar;
+  }
   if (description !== undefined) { user.description = description.trim(); updates.description = description.trim(); }
 
   await UsersRepo.update(finalEmail, updates).catch(() => {});
@@ -490,6 +516,119 @@ router.delete('/users/:email', authMiddleware, requireSuperAdmin, async (req, re
   }
 
   res.json({ success: true, message: `Member ${targetEmail} successfully removed.` });
+});
+
+// ── Roles & Permissions Management ───────────────────────────────────
+
+// GET /api/auth/permissions — List all known permission identifiers
+router.get('/permissions', authMiddleware, requireAdmin, (req, res) => {
+  const permissions = Object.keys(PERMISSION_ROLES).map(key => ({
+    key,
+    description: key.replace(/\./g, ' ').toUpperCase(),
+    defaultRoles: PERMISSION_ROLES[key]
+  }));
+  res.json({ permissions });
+});
+
+// GET /api/auth/roles — List all roles with permissions
+router.get('/roles', authMiddleware, async (req, res) => {
+  try {
+    const roles = await RolesRepo.getAll();
+    res.json({ roles });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch roles: ' + err.message });
+  }
+});
+
+// GET /api/auth/roles/:id — Get single role details
+router.get('/roles/:id', authMiddleware, async (req, res) => {
+  try {
+    const role = await RolesRepo.getById(req.params.id);
+    if (!role) return res.status(404).json({ error: 'Role not found' });
+    res.json({ role });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch role: ' + err.message });
+  }
+});
+
+// POST /api/auth/roles — Create new role
+router.post('/roles', authMiddleware, requireSuperAdmin, async (req, res) => {
+  try {
+    const { id, name, description, color, badge, permissions } = req.body;
+    if (!name) return res.status(400).json({ error: 'Role name is required' });
+    const created = await RolesRepo.create({ id, name, description, color, badge, permissions });
+    res.status(201).json({ role: created });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create role: ' + err.message });
+  }
+});
+
+// PUT /api/auth/roles/:id — Update role & permissions
+router.put('/roles/:id', authMiddleware, requireSuperAdmin, async (req, res) => {
+  try {
+    const updated = await RolesRepo.update(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ error: 'Role not found' });
+    res.json({ role: updated });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update role: ' + err.message });
+  }
+});
+
+// DELETE /api/auth/roles/:id — Delete role
+router.delete('/roles/:id', authMiddleware, requireSuperAdmin, async (req, res) => {
+  try {
+    const deleted = await RolesRepo.delete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Role not found' });
+    res.json({ success: true, message: `Role ${req.params.id} deleted.` });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/roles/:id/permissions — Get role permissions
+router.get('/roles/:id/permissions', authMiddleware, async (req, res) => {
+  try {
+    const permissions = await RolesPermissionsRepo.getByRoleId(req.params.id);
+    res.json({ permissions });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/auth/roles/:id/permissions — Update role permissions
+router.put('/roles/:id/permissions', authMiddleware, requireSuperAdmin, async (req, res) => {
+  try {
+    const { permissions } = req.body;
+    if (!Array.isArray(permissions)) return res.status(400).json({ error: 'permissions array required' });
+    const updated = await RolesPermissionsRepo.setRolePermissions(req.params.id, permissions);
+    res.json({ permissions: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/users/:email/permissions — Get user's direct permissions
+router.get('/users/:email/permissions', authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const userEmail = decodeURIComponent(req.params.email);
+    const userPerms = await UsersPermissionsRepo.getByUserEmail(userEmail);
+    res.json({ permissions: userPerms });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/auth/users/:email/permissions — Update user's direct permissions
+router.put('/users/:email/permissions', authMiddleware, requireSuperAdmin, async (req, res) => {
+  try {
+    const userEmail = decodeURIComponent(req.params.email);
+    const { permissions } = req.body;
+    if (!Array.isArray(permissions)) return res.status(400).json({ error: 'permissions array required' });
+    const updated = await UsersPermissionsRepo.setUserPermissions(userEmail, permissions);
+    res.json({ permissions: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

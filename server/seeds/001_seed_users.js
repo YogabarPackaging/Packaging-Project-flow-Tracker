@@ -1,6 +1,7 @@
 const { query } = require('../db');
 const { SEED_USERS, SUPERADMIN } = require('../constants');
 const { hashPass } = require('../utils');
+const { cleanStr } = require('../utils/sanitizer');
 
 async function seedUsers() {
   console.log('   🌱 Seeding Users (Designated Team Members & Admins)...');
@@ -8,12 +9,14 @@ async function seedUsers() {
   // 1. Insert or update 10 designated team members
   for (const u of SEED_USERS) {
     const passwordHash = hashPass(u.defaultPw || 'Admin@PKG#2024');
+    const role = cleanStr(u.role) || 'updater';
     await query(`
       INSERT INTO users (
-        email, name, role, title, team, department, mobile, avatar, color, password_hash, must_change_pw, temp_pw
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        email, name, role_id, role, title, team, department, mobile, avatar, color, password_hash, must_change_pw, temp_pw
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       ON CONFLICT (email) DO UPDATE SET
         name = EXCLUDED.name,
+        role_id = EXCLUDED.role_id,
         role = EXCLUDED.role,
         title = EXCLUDED.title,
         team = EXCLUDED.team,
@@ -22,15 +25,16 @@ async function seedUsers() {
         color = EXCLUDED.color,
         updated_at = CURRENT_TIMESTAMP
     `, [
-      u.email.toLowerCase().trim(),
-      u.name,
-      u.role || 'updater',
-      u.title || '',
-      u.team || '',
-      u.department || '',
-      u.mobile || '',
-      u.avatar || '',
-      u.color || '#00bfa5',
+      cleanStr(u.email)?.toLowerCase(),
+      cleanStr(u.name),
+      role,
+      role,
+      cleanStr(u.title),
+      cleanStr(u.team),
+      cleanStr(u.department),
+      cleanStr(u.mobile),
+      cleanStr(u.avatar),
+      cleanStr(u.color) || '#00bfa5',
       passwordHash,
       false,
       null
@@ -42,10 +46,11 @@ async function seedUsers() {
     const superadminPwHash = hashPass(SUPERADMIN.pass || 'Admin@PKG#2024');
     await query(`
       INSERT INTO users (
-        email, name, role, title, team, department, mobile, avatar, color, password_hash, must_change_pw, temp_pw
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        email, name, role_id, role, title, team, department, mobile, avatar, color, password_hash, must_change_pw, temp_pw
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       ON CONFLICT (email) DO UPDATE SET
         name = EXCLUDED.name,
+        role_id = 'superadmin',
         role = 'superadmin',
         title = EXCLUDED.title,
         team = EXCLUDED.team,
@@ -54,15 +59,16 @@ async function seedUsers() {
         color = EXCLUDED.color,
         updated_at = CURRENT_TIMESTAMP
     `, [
-      SUPERADMIN.email.toLowerCase().trim(),
-      SUPERADMIN.name || 'Alexsander',
+      cleanStr(SUPERADMIN.email)?.toLowerCase(),
+      cleanStr(SUPERADMIN.name) || 'Alexsander',
       'superadmin',
-      SUPERADMIN.title || 'Packaging Head',
-      SUPERADMIN.team || 'Packaging Leadership',
-      SUPERADMIN.department || 'Global Packaging Leadership',
-      SUPERADMIN.mobile || '+91 98765 43210',
-      SUPERADMIN.avatar || '',
-      SUPERADMIN.color || '#ef4444',
+      'superadmin',
+      cleanStr(SUPERADMIN.title) || 'Packaging Head',
+      cleanStr(SUPERADMIN.team) || 'Packaging Leadership',
+      cleanStr(SUPERADMIN.department) || 'Global Packaging Leadership',
+      cleanStr(SUPERADMIN.mobile) || '+91 98765 43210',
+      cleanStr(SUPERADMIN.avatar),
+      cleanStr(SUPERADMIN.color) || '#ef4444',
       superadminPwHash,
       false,
       null

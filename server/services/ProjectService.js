@@ -32,6 +32,7 @@ const {
 const { calculateCrunchedTimeline } = require('../crunchUtils');
 const { today } = require('../utils');
 const logger = require('../utils/logger');
+const { persistMaterialFiles } = require('./UploadStorageService');
 
 // ── Material Factory ──────────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ function buildMaterial(rawMat, idx, briefDate, existing = null) {
   const id = existing?.id || rawMat.id || generateMaterialId();
   const packagingFormatId = rawMat.packagingFormatId || rawMat.packaging_format_id || rawMat.formatId || existing?.packagingFormatId || existing?.packaging_format_id || null;
 
-  return {
+  const matObj = {
     ...rawMat,
     id,
     packagingFormatId,
@@ -89,6 +90,8 @@ function buildMaterial(rawMat, idx, briefDate, existing = null) {
     createdAt: existing?.createdAt || rawMat.createdAt || new Date().toISOString(),
     createdBy: existing?.createdBy || rawMat.createdBy || null
   };
+
+  return persistMaterialFiles(matObj, artworkCode);
 }
 
 // ── Project CRUD ──────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ListTodo, Calendar, Map, Users, AlertTriangle, Package, Bell, FileText, Palette, Shield, Building, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Calendar, Map, Users, AlertTriangle, Package, Bell, FileText, Palette, Shield, Building, Settings, LogOut, Network, UserCheck } from 'lucide-react';
 import { SHADOW_AVATAR } from '../../constants';
 
 export default function Sidebar({
@@ -43,10 +43,16 @@ export default function Sidebar({
       ]
     },
     {
+      groupTitle: 'TEAM & ACCESS',
+      items: [
+        { id: 'users',     label: 'Users List',       icon: <Users size={16} />, badge: 'CRUD' },
+        { id: 'raci',      label: 'RACI Matrix',      icon: <Network size={16} /> },
+      ]
+    },
+    {
       groupTitle: 'GOVERNANCE',
       items: [
         { id: 'stages',    label: 'Stage SOP Guide',  icon: <Map size={16} /> },
-        { id: 'raci',      label: 'RACI Matrix',      icon: <Users size={16} /> },
         { id: 'risks',     label: 'Risk Register',    icon: <AlertTriangle size={16} /> },
       ]
     },

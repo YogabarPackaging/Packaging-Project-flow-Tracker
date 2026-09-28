@@ -25,3 +25,7 @@ client/dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local tokens & scratch
+git_token.txt
+scratch/

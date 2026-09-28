@@ -16,7 +16,7 @@
           "artworkApproval": {
             "status": "APPROVED",
             "reviewer": "Brand Approver",
-            "date": "2026-09-23T10:14:04.222Z",
+            "date": "2026-09-27T14:47:53.002Z",
             "comments": "Nutrition table resized to 7.5pt. Compliant with legal guidelines."
           }
         }
@@ -26,7 +26,7 @@
       },
       "auditTrail": [
         {
-          "id": "ACT-1790158444247-4Y7L",
+          "id": "ACT-1790520473032-0JPL",
           "eventType": "RISK_RESOLVED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -53,8 +53,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444247,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520473032,
+          "dateStr": "27 Sept 2026, 08:17:53 PM",
           "action": "RISK_RESOLVED",
           "field": null,
           "oldValue": null,
@@ -68,7 +68,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444243-8OWO",
+          "id": "ACT-1790520473029-85L8",
           "eventType": "RISK_LOGGED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -95,8 +95,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444243,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520473029,
+          "dateStr": "27 Sept 2026, 08:17:53 PM",
           "action": "RISK_LOGGED",
           "field": null,
           "oldValue": null,
@@ -110,7 +110,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444240-O324",
+          "id": "ACT-1790520473024-VR1Q",
           "eventType": "COMMENT_ADDED",
           "entity": "project",
           "entityId": "PRJ-TEST-APP",
@@ -137,8 +137,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444239,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520473024,
+          "dateStr": "27 Sept 2026, 08:17:53 PM",
           "action": "COMMENT_ADDED",
           "field": null,
           "oldValue": null,
@@ -152,7 +152,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444235-CEE6",
+          "id": "ACT-1790520473020-6U6G",
           "eventType": "TASK_COMPLETED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -179,8 +179,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444235,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520473020,
+          "dateStr": "27 Sept 2026, 08:17:53 PM",
           "action": "TASK_COMPLETED",
           "field": null,
           "oldValue": null,
@@ -194,7 +194,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444232-AMQS",
+          "id": "ACT-1790520473016-AOXY",
           "eventType": "DEPENDENCY_BLOCKED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -221,8 +221,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444232,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520473015,
+          "dateStr": "27 Sept 2026, 08:17:53 PM",
           "action": "DEPENDENCY_BLOCKED",
           "field": null,
           "oldValue": null,
@@ -236,7 +236,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444228-YIWE",
+          "id": "ACT-1790520473011-UW09",
           "eventType": "TASK_ASSIGNED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -263,8 +263,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444227,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520473010,
+          "dateStr": "27 Sept 2026, 08:17:53 PM",
           "action": "TASK_ASSIGNED",
           "field": null,
           "oldValue": null,
@@ -278,7 +278,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444223-XS3X",
+          "id": "ACT-1790520473003-VXDP",
           "eventType": "APPROVAL_COMPLETED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -305,8 +305,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444222,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520473003,
+          "dateStr": "27 Sept 2026, 08:17:53 PM",
           "action": "APPROVAL_COMPLETED",
           "field": null,
           "oldValue": null,
@@ -320,7 +320,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444220-MMPI",
+          "id": "ACT-1790520473000-EM7L",
           "eventType": "APPROVAL_COMPLETED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -347,8 +347,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444219,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520472999,
+          "dateStr": "27 Sept 2026, 08:17:52 PM",
           "action": "APPROVAL_COMPLETED",
           "field": null,
           "oldValue": null,
@@ -362,7 +362,7 @@
           "byDept": ""
         },
         {
-          "id": "ACT-1790158444215-4HRA",
+          "id": "ACT-1790520472994-F3QI",
           "eventType": "APPROVAL_REQUESTED",
           "entity": "material",
           "entityId": "PRJ-TEST-APP",
@@ -389,8 +389,8 @@
             "version": null
           },
           "reason": null,
-          "timestamp": 1790158444196,
-          "dateStr": "23 Sept 2026, 03:44:04 PM",
+          "timestamp": 1790520472963,
+          "dateStr": "27 Sept 2026, 08:17:52 PM",
           "action": "APPROVAL_REQUESTED",
           "field": null,
           "oldValue": null,
@@ -406,7 +406,7 @@
       ],
       "risks": [
         {
-          "id": "RSK-1790158444243-N8LH4",
+          "id": "RSK-1790520473028-MRHOV",
           "projectId": "PRJ-TEST-APP",
           "title": "Supplier lead-time delay on printed pouch laminate",
           "description": "Solvent delivery backlog at converting facility",
@@ -419,9 +419,9 @@
           "owner": "procurement@company.com",
           "action": "Secondary capacity booked for 25th September",
           "createdBy": "Supply Chain Mgr",
-          "createdAt": "2026-09-23T10:14:04.243Z",
-          "updatedAt": "2026-09-23T10:14:04.246Z",
-          "resolvedAt": "2026-09-23T10:14:04.246Z"
+          "createdAt": "2026-09-27T14:47:53.028Z",
+          "updatedAt": "2026-09-27T14:47:53.032Z",
+          "resolvedAt": "2026-09-27T14:47:53.032Z"
         }
       ],
       "risk": "Low"
@@ -429,7 +429,7 @@
   ],
   "advanceLogs": [
     {
-      "id": "ACT-1790158444247-4Y7L",
+      "id": "ACT-1790520473032-0JPL",
       "eventType": "RISK_RESOLVED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -456,8 +456,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444247,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520473032,
+      "dateStr": "27 Sept 2026, 08:17:53 PM",
       "action": "RISK_RESOLVED",
       "field": null,
       "oldValue": null,
@@ -471,7 +471,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444243-8OWO",
+      "id": "ACT-1790520473029-85L8",
       "eventType": "RISK_LOGGED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -498,8 +498,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444243,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520473029,
+      "dateStr": "27 Sept 2026, 08:17:53 PM",
       "action": "RISK_LOGGED",
       "field": null,
       "oldValue": null,
@@ -513,7 +513,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444240-O324",
+      "id": "ACT-1790520473024-VR1Q",
       "eventType": "COMMENT_ADDED",
       "entity": "project",
       "entityId": "PRJ-TEST-APP",
@@ -540,8 +540,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444239,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520473024,
+      "dateStr": "27 Sept 2026, 08:17:53 PM",
       "action": "COMMENT_ADDED",
       "field": null,
       "oldValue": null,
@@ -555,7 +555,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444235-CEE6",
+      "id": "ACT-1790520473020-6U6G",
       "eventType": "TASK_COMPLETED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -582,8 +582,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444235,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520473020,
+      "dateStr": "27 Sept 2026, 08:17:53 PM",
       "action": "TASK_COMPLETED",
       "field": null,
       "oldValue": null,
@@ -597,7 +597,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444232-AMQS",
+      "id": "ACT-1790520473016-AOXY",
       "eventType": "DEPENDENCY_BLOCKED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -624,8 +624,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444232,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520473015,
+      "dateStr": "27 Sept 2026, 08:17:53 PM",
       "action": "DEPENDENCY_BLOCKED",
       "field": null,
       "oldValue": null,
@@ -639,7 +639,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444228-YIWE",
+      "id": "ACT-1790520473011-UW09",
       "eventType": "TASK_ASSIGNED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -666,8 +666,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444227,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520473010,
+      "dateStr": "27 Sept 2026, 08:17:53 PM",
       "action": "TASK_ASSIGNED",
       "field": null,
       "oldValue": null,
@@ -681,7 +681,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444223-XS3X",
+      "id": "ACT-1790520473003-VXDP",
       "eventType": "APPROVAL_COMPLETED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -708,8 +708,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444222,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520473003,
+      "dateStr": "27 Sept 2026, 08:17:53 PM",
       "action": "APPROVAL_COMPLETED",
       "field": null,
       "oldValue": null,
@@ -723,7 +723,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444220-MMPI",
+      "id": "ACT-1790520473000-EM7L",
       "eventType": "APPROVAL_COMPLETED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -750,8 +750,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444219,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520472999,
+      "dateStr": "27 Sept 2026, 08:17:52 PM",
       "action": "APPROVAL_COMPLETED",
       "field": null,
       "oldValue": null,
@@ -765,7 +765,7 @@
       "byDept": ""
     },
     {
-      "id": "ACT-1790158444215-4HRA",
+      "id": "ACT-1790520472994-F3QI",
       "eventType": "APPROVAL_REQUESTED",
       "entity": "material",
       "entityId": "PRJ-TEST-APP",
@@ -792,8 +792,8 @@
         "version": null
       },
       "reason": null,
-      "timestamp": 1790158444196,
-      "dateStr": "23 Sept 2026, 03:44:04 PM",
+      "timestamp": 1790520472963,
+      "dateStr": "27 Sept 2026, 08:17:52 PM",
       "action": "APPROVAL_REQUESTED",
       "field": null,
       "oldValue": null,
@@ -809,7 +809,7 @@
   ],
   "approvals": [
     {
-      "id": "APP-1790158444195-U9Q13",
+      "id": "APP-1790520472953-N88FE",
       "entityType": "ARTWORK",
       "entityId": "MAT-001",
       "projectId": "PRJ-TEST-APP",
@@ -817,17 +817,17 @@
       "title": "Protein Wafer Final Artwork Approval",
       "status": "APPROVED",
       "requestedBy": "pkg.mgr@company.com",
-      "requestedAt": "2026-09-23T10:14:04.194Z",
+      "requestedAt": "2026-09-27T14:47:52.952Z",
       "reviewer": "Brand Approver",
       "reviewerRole": "superadmin",
       "decision": "APPROVED",
-      "decisionDate": "2026-09-23T10:14:04.222Z",
+      "decisionDate": "2026-09-27T14:47:53.002Z",
       "comments": "Nutrition table resized to 7.5pt. Compliant with legal guidelines.",
       "history": [
         {
           "action": "REQUESTED",
           "requestedBy": "pkg.mgr@company.com",
-          "date": "2026-09-23T10:14:04.194Z",
+          "date": "2026-09-27T14:47:52.952Z",
           "comments": "Please verify regulatory and nutrition table typography"
         },
         {
@@ -835,7 +835,7 @@
           "decision": "REJECTED",
           "reviewer": "Brand Approver",
           "reviewerRole": "superadmin",
-          "date": "2026-09-23T10:14:04.218Z",
+          "date": "2026-09-27T14:47:52.997Z",
           "comments": "Nutrition table font size is below 6pt specification",
           "previousStatus": "PENDING"
         },
@@ -844,19 +844,19 @@
           "decision": "APPROVED",
           "reviewer": "Brand Approver",
           "reviewerRole": "superadmin",
-          "date": "2026-09-23T10:14:04.222Z",
+          "date": "2026-09-27T14:47:53.002Z",
           "comments": "Nutrition table resized to 7.5pt. Compliant with legal guidelines.",
           "previousStatus": "REJECTED"
         }
       ],
       "metadata": {},
-      "createdAt": "2026-09-23T10:14:04.194Z",
-      "updatedAt": "2026-09-23T10:14:04.222Z"
+      "createdAt": "2026-09-27T14:47:52.952Z",
+      "updatedAt": "2026-09-27T14:47:53.002Z"
     }
   ],
   "tasks": [
     {
-      "id": "TSK-1790158444226-1IQU7",
+      "id": "TSK-1790520473009-HQAA1",
       "projectId": "PRJ-TEST-APP",
       "materialId": "MAT-001",
       "title": "Approve VPDF for Protein Wafer",
@@ -868,15 +868,15 @@
       "status": "COMPLETED",
       "priority": "High",
       "createdBy": "designer@company.com",
-      "completedAt": "2026-09-23T10:14:04.234Z",
+      "completedAt": "2026-09-27T14:47:53.018Z",
       "metadata": {},
-      "createdAt": "2026-09-23T10:14:04.226Z",
-      "updatedAt": "2026-09-23T10:14:04.234Z"
+      "createdAt": "2026-09-27T14:47:53.009Z",
+      "updatedAt": "2026-09-27T14:47:53.018Z"
     }
   ],
   "comments": [
     {
-      "id": "CMT-1790158444238-7RB1W",
+      "id": "CMT-1790520473023-3ZGUY",
       "contextType": "PROJECT",
       "contextId": "PRJ-TEST-APP",
       "projectId": "PRJ-TEST-APP",
@@ -886,13 +886,13 @@
       "mentions": [
         "procurement@company.com"
       ],
-      "createdAt": "2026-09-23T10:14:04.238Z",
-      "updatedAt": "2026-09-23T10:14:04.238Z"
+      "createdAt": "2026-09-27T14:47:53.022Z",
+      "updatedAt": "2026-09-27T14:47:53.022Z"
     }
   ],
   "notifications": [
     {
-      "id": "NTF-1790158444245-593DT",
+      "id": "NTF-1790520473030-EI19Q",
       "recipientEmail": "procurement@company.com",
       "category": "Risk",
       "title": "Assigned Risk: Supplier lead-time delay on printed pouch laminate",
@@ -900,14 +900,14 @@
       "projectId": "PRJ-TEST-APP",
       "materialId": "MAT-001",
       "entityType": "RISK",
-      "entityId": "RSK-1790158444243-N8LH4",
+      "entityId": "RSK-1790520473028-MRHOV",
       "isRead": false,
       "readAt": null,
       "priority": "High",
-      "createdAt": "2026-09-23T10:14:04.245Z"
+      "createdAt": "2026-09-27T14:47:53.030Z"
     },
     {
-      "id": "NTF-1790158444241-L9IUE",
+      "id": "NTF-1790520473026-YRIDV",
       "recipientEmail": "procurement@company.com",
       "category": "System",
       "title": "Mentioned in PROJECT comment",
@@ -919,10 +919,10 @@
       "isRead": false,
       "readAt": null,
       "priority": "Normal",
-      "createdAt": "2026-09-23T10:14:04.241Z"
+      "createdAt": "2026-09-27T14:47:53.026Z"
     },
     {
-      "id": "NTF-1790158444233-AMMX6",
+      "id": "NTF-1790520473017-ARITS",
       "recipientEmail": "pkg.mgr@company.com",
       "category": "Task",
       "title": "Task Blocked: Approve VPDF for Protein Wafer",
@@ -930,14 +930,14 @@
       "projectId": "PRJ-TEST-APP",
       "materialId": "MAT-001",
       "entityType": "TASK",
-      "entityId": "TSK-1790158444226-1IQU7",
+      "entityId": "TSK-1790520473009-HQAA1",
       "isRead": false,
       "readAt": null,
       "priority": "Urgent",
-      "createdAt": "2026-09-23T10:14:04.233Z"
+      "createdAt": "2026-09-27T14:47:53.017Z"
     },
     {
-      "id": "NTF-1790158444229-9AGDE",
+      "id": "NTF-1790520473013-F7914",
       "recipientEmail": "design@company.com",
       "category": "Task",
       "title": "New Task Assigned: Approve VPDF for Protein Wafer",
@@ -945,14 +945,14 @@
       "projectId": "PRJ-TEST-APP",
       "materialId": "MAT-001",
       "entityType": "TASK",
-      "entityId": "TSK-1790158444226-1IQU7",
+      "entityId": "TSK-1790520473009-HQAA1",
       "isRead": false,
       "readAt": null,
       "priority": "High",
-      "createdAt": "2026-09-23T10:14:04.229Z"
+      "createdAt": "2026-09-27T14:47:53.013Z"
     },
     {
-      "id": "NTF-1790158444224-EUA2L",
+      "id": "NTF-1790520473005-MMJ3S",
       "recipientEmail": "pkg.mgr@company.com",
       "category": "Approval",
       "title": "Approval APPROVED: Protein Wafer Final Artwork Approval",
@@ -960,14 +960,14 @@
       "projectId": "PRJ-TEST-APP",
       "materialId": "MAT-001",
       "entityType": "ARTWORK",
-      "entityId": "APP-1790158444195-U9Q13",
+      "entityId": "APP-1790520472953-N88FE",
       "isRead": false,
       "readAt": null,
       "priority": "Normal",
-      "createdAt": "2026-09-23T10:14:04.224Z"
+      "createdAt": "2026-09-27T14:47:53.005Z"
     },
     {
-      "id": "NTF-1790158444221-ZHKPK",
+      "id": "NTF-1790520473001-XPGWK",
       "recipientEmail": "pkg.mgr@company.com",
       "category": "Approval",
       "title": "Approval REJECTED: Protein Wafer Final Artwork Approval",
@@ -975,14 +975,14 @@
       "projectId": "PRJ-TEST-APP",
       "materialId": "MAT-001",
       "entityType": "ARTWORK",
-      "entityId": "APP-1790158444195-U9Q13",
+      "entityId": "APP-1790520472953-N88FE",
       "isRead": false,
       "readAt": null,
       "priority": "High",
-      "createdAt": "2026-09-23T10:14:04.221Z"
+      "createdAt": "2026-09-27T14:47:53.001Z"
     },
     {
-      "id": "NTF-1790158444217-3P12N",
+      "id": "NTF-1790520472996-IHPE8",
       "recipientEmail": "brand.lead@company.com",
       "category": "Approval",
       "title": "Approval Pending: Protein Wafer Final Artwork Approval",
@@ -990,11 +990,11 @@
       "projectId": "PRJ-TEST-APP",
       "materialId": "MAT-001",
       "entityType": "ARTWORK",
-      "entityId": "APP-1790158444195-U9Q13",
+      "entityId": "APP-1790520472953-N88FE",
       "isRead": false,
       "readAt": null,
       "priority": "High",
-      "createdAt": "2026-09-23T10:14:04.217Z"
+      "createdAt": "2026-09-27T14:47:52.996Z"
     }
   ],
   "userPreferences": {
@@ -1062,5 +1062,5 @@
   "webhooks": [],
   "webhookDeliveries": [],
   "aiActivityLogs": [],
-  "savedAt": "2026-09-23T10:14:04.247Z"
+  "savedAt": "2026-09-27T14:47:53.032Z"
 }

@@ -236,21 +236,28 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
     });
   };
 
-  const validateImageFile = (file) => {
+  const isPdfArtwork = (url, name) => {
+    if (url && (url.startsWith('data:application/pdf') || url.toLowerCase().includes('.pdf'))) return true;
+    if (name && name.toLowerCase().endsWith('.pdf')) return true;
+    return false;
+  };
+
+  const validateArtworkFile = (file) => {
     if (!file) return false;
-    if (file.size && file.size > 30 * 1024 * 1024) {
-      alert('⚠️ Uploaded file exceeds 30MB. Please use an image file under 30MB.');
+    if (file.size && file.size > 35 * 1024 * 1024) {
+      alert('⚠️ Uploaded file exceeds 35MB. Please upload an artwork file under 35MB.');
       return false;
     }
-    const ALLOWED_IMAGE_TYPES = [
+    const ALLOWED_TYPES = [
       'image/png', 'image/jpeg', 'image/jpg', 'image/gif',
-      'image/webp', 'image/svg+xml', 'image/bmp', 'image/tiff'
+      'image/webp', 'image/svg+xml', 'image/bmp', 'image/tiff',
+      'application/pdf'
     ];
-    const ALLOWED_EXTENSIONS = /\.(png|jpg|jpeg|gif|webp|svg|bmp|tiff|tif)$/i;
-    const isImage = ALLOWED_IMAGE_TYPES.includes(file.type) || (!file.type && ALLOWED_EXTENSIONS.test(file.name));
-    if (!isImage) {
+    const ALLOWED_EXTENSIONS = /\.(png|jpg|jpeg|gif|webp|svg|bmp|tiff|tif|pdf|ai|psd)$/i;
+    const isAllowed = ALLOWED_TYPES.includes(file.type) || (!file.type && ALLOWED_EXTENSIONS.test(file.name)) || ALLOWED_EXTENSIONS.test(file.name);
+    if (!isAllowed) {
       const ext = file.name.split('.').pop()?.toUpperCase() || 'file';
-      alert(`⛔ ${ext} files are not allowed. Only image formats (PNG, JPG, GIF, WebP, SVG) are accepted.`);
+      alert(`⛔ ${ext} files are not allowed. Only artwork formats (PDF, PNG, JPG, WebP, SVG, TIFF, AI, PSD) are accepted.`);
       return false;
     }
     return true;
@@ -258,7 +265,8 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
 
   const handleArtworkUpload = (matIdx, file) => {
     if (!file) return;
-    if (!validateImageFile(file)) return;
+    if (!validateArtworkFile(file)) return;
+    const isPdf = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf');
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target.result;
@@ -266,7 +274,7 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
         const copy = [...prev];
         const m = { ...copy[matIdx], artworkUrl: dataUrl, artworkFileName: file.name, hasRemovedArtwork: false };
         if (!m.specSheet) m.specSheet = getDefaultSpecSheet(m.type, projectName, skuSize, matIdx);
-        const artworkFiles = [{ name: file.name, url: dataUrl, type: 'image/png', uploadedAt: new Date().toISOString() }];
+        const artworkFiles = [{ name: file.name, url: dataUrl, type: isPdf ? 'application/pdf' : (file.type || 'image/png'), uploadedAt: new Date().toISOString() }];
         m.specSheet = { ...m.specSheet, artworkFiles, hasRemovedArtwork: false };
         if (m.specSheet.variants && m.specSheet.variants.length > 0) {
           const curVars = [...m.specSheet.variants];
@@ -289,7 +297,8 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
 
   const handleVariantArtworkUpload = (matIdx, vIdx, file) => {
     if (!file) return;
-    if (!validateImageFile(file)) return;
+    if (!validateArtworkFile(file)) return;
+    const isPdf = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf');
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target.result;
@@ -299,7 +308,7 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
         if (!m.specSheet) m.specSheet = getDefaultSpecSheet(m.type, projectName, skuSize, matIdx);
         const curVars = [...(m.specSheet.variants || m.variants || [])];
         if (curVars[vIdx]) {
-          const vArtFiles = [{ name: file.name, url: dataUrl, type: 'image/png', uploadedAt: new Date().toISOString() }];
+          const vArtFiles = [{ name: file.name, url: dataUrl, type: isPdf ? 'application/pdf' : (file.type || 'image/png'), uploadedAt: new Date().toISOString() }];
           curVars[vIdx] = {
             ...curVars[vIdx],
             artworkUrl: dataUrl,
@@ -1148,7 +1157,7 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
                                                      if (!variantFileInputRefs.current[idx]) variantFileInputRefs.current[idx] = {};
                                                      variantFileInputRefs.current[idx][vIdx] = el;
                                                    }}
-                                                   accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/bmp,image/tiff"
+                                                   accept="image/*,application/pdf,.pdf,.ai,.psd"
                                                    onChange={e => {
                                                      if (e.target.files?.[0]) handleVariantArtworkUpload(idx, vIdx, e.target.files[0]);
                                                      e.target.value = '';
@@ -1175,7 +1184,11 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
                                                        }}
                                                        title="Click to open full-resolution preview"
                                                      >
-                                                       <img src={vArtUrl} alt="Proof" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                       {isPdfArtwork(vArtUrl, vArtName) ? (
+                                                          <span style={{ fontSize: '9px', fontWeight: 800, color: '#ef4444' }}>PDF</span>
+                                                        ) : (
+                                                          <img src={vArtUrl} alt="Proof" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                        )}
                                                      </div>
                                                      <button
                                                        type="button"
@@ -1434,7 +1447,14 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
                                                    }}
                                                    title="Click to view full preview"
                                                  >
-                                                   <img src={vArtUrl} alt={v.variantName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                   {isPdfArtwork(vArtUrl, vArtName) ? (
+                                                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 800 }}>PDF</span>
+                                                        <span style={{ fontSize: '8px', color: '#cbd5e1' }}>Doc</span>
+                                                      </div>
+                                                    ) : (
+                                                      <img src={vArtUrl} alt={v.variantName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    )}
                                                  </div>
                                                ) : (
                                                  <div style={{ width: '60px', height: '60px', borderRadius: '4px', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center', padding: '4px', flexShrink: 0 }}>
@@ -1534,12 +1554,12 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', alignItems: 'center' }}>
                                        <div>
                                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 700, color: '#cbd5e1', marginBottom: '4px' }}>
-                                           Upload Artwork Proof (PNG, JPG, WebP, SVG)
+                                           Upload Artwork Proof (PDF, PNG, JPG, WebP, SVG, AI)
                                          </label>
                                          <input
                                            type="file"
                                            ref={el => { materialFileInputRefs.current[idx] = el; }}
-                                           accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml,image/bmp,image/tiff"
+                                           accept="image/*,application/pdf,.pdf,.ai,.psd"
                                            onChange={e => {
                                              if (e.target.files?.[0]) handleArtworkUpload(idx, e.target.files[0]);
                                              e.target.value = '';
@@ -1576,7 +1596,14 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
                                              }}
                                              title="Click to view full preview"
                                            >
-                                             <img src={m.artworkUrl} alt="Artwork" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                             {isPdfArtwork(m.artworkUrl, m.artworkFileName) ? (
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                                  <span style={{ fontSize: '14px', fontWeight: 800 }}>PDF</span>
+                                                  <span style={{ fontSize: '8.5px', color: '#cbd5e1' }}>Doc</span>
+                                                </div>
+                                              ) : (
+                                                <img src={m.artworkUrl} alt="Artwork" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                              )}
                                            </div>
                                          ) : (
                                            <div style={{ width: '64px', height: '64px', borderRadius: '4px', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center', padding: '4px', flexShrink: 0 }}>
@@ -1780,17 +1807,43 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
               background: '#090d16',
               minHeight: isFullScreenPreview ? 'calc(100vh - 55px)' : '480px'
             }}>
-              <img
-                src={previewArtworkModal.url}
-                alt={previewArtworkModal.name || 'Artwork Preview'}
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: isFullScreenPreview ? 'calc(100vh - 90px)' : '78vh',
-                  objectFit: 'contain',
-                  borderRadius: '4px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
-                }}
-              />
+              {isPdfArtwork(previewArtworkModal.url, previewArtworkModal.name) ? (
+                <iframe
+                  src={previewArtworkModal.url}
+                  title={previewArtworkModal.name || 'PDF Preview'}
+                  style={{
+                    width: '100%',
+                    height: isFullScreenPreview ? 'calc(100vh - 95px)' : '75vh',
+                    border: 'none',
+                    borderRadius: '4px',
+                    background: '#ffffff'
+                  }}
+                />
+              ) : (
+                <>
+                  <img
+                    src={previewArtworkModal.url}
+                    alt={previewArtworkModal.name || 'Artwork Preview'}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const fallback = e.target.nextElementSibling;
+                      if (fallback) fallback.style.display = 'block';
+                    }}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: isFullScreenPreview ? 'calc(100vh - 90px)' : '78vh',
+                      objectFit: 'contain',
+                      borderRadius: '4px',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                    }}
+                  />
+                  <div style={{ display: 'none', textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
+                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>🖼️</div>
+                    <p style={{ fontWeight: 600, fontSize: '13px', color: '#f1f5f9' }}>Artwork Preview Unavailable</p>
+                    <p style={{ fontSize: '11px' }}>The artwork file could not be rendered.</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
