@@ -1,0 +1,47 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      CLIENT_URL: https://${APP_DOMAIN}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT:-25060}
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_SSL_MODE: verify-full
+      DB_SSL_ROOT_CERT: ./global-bundle.pem
+      LOG_LEVEL: info
+      SPACES_ENDPOINT: ${SPACES_ENDPOINT}
+      SPACES_REGION: ${SPACES_REGION}
+      SPACES_BUCKET: ${SPACES_BUCKET}
+      SPACES_KEY: ${SPACES_KEY}
+      SPACES_SECRET: ${SPACES_SECRET}
+    volumes:
+      - app_backups:/app/server/backups
+      - app_runtime:/app/server/data
+    expose:
+      - "5001"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  app_backups:
+  app_runtime:
+  caddy_data:
+  caddy_config:

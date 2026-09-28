@@ -13,6 +13,54 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+class S3CompatibleStorageProvider {
+  constructor(config = {}) {
+    const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+    this.S3Client = S3Client;
+    this.PutObjectCommand = PutObjectCommand;
+    this.GetObjectCommand = GetObjectCommand;
+    this.DeleteObjectCommand = DeleteObjectCommand;
+    this.bucket = config.bucket || process.env.SPACES_BUCKET;
+    this.endpoint = config.endpoint || process.env.SPACES_ENDPOINT;
+    this.region = config.region || process.env.SPACES_REGION || 'us-east-1';
+    this.client = new S3Client({
+      endpoint: this.endpoint,
+      region: this.region,
+      forcePathStyle: false,
+      credentials: {
+        accessKeyId: config.accessKeyId || process.env.SPACES_KEY,
+        secretAccessKey: config.secretAccessKey || process.env.SPACES_SECRET
+      }
+    });
+  }
+
+  async save(buffer, storageKey, metadata = {}) {
+    await this.client.send(new this.PutObjectCommand({
+      Bucket: this.bucket,
+      Key: storageKey,
+      Body: buffer,
+      ContentType: metadata.mimeType || 'application/octet-stream',
+      Metadata: {
+        'original-filename': String(metadata.originalFilename || '').slice(0, 512),
+        'checksum-sha256': String(metadata.checksumSha256 || '')
+      }
+    }));
+    return { provider: 'spaces', storageKey };
+  }
+
+  async get(storageKey) {
+    const response = await this.client.send(new this.GetObjectCommand({ Bucket: this.bucket, Key: storageKey }));
+    const chunks = [];
+    for await (const chunk of response.Body) chunks.push(chunk);
+    return Buffer.concat(chunks);
+  }
+
+  async delete(storageKey) {
+    await this.client.send(new this.DeleteObjectCommand({ Bucket: this.bucket, Key: storageKey }));
+    return true;
+  }
+}
+
 class LocalStorageProvider {
   constructor(baseDir) {
     this.baseDir = baseDir || path.join(__dirname, '../uploads/documents');
@@ -53,7 +101,9 @@ class LocalStorageProvider {
 
 class StorageService {
   constructor(provider = null) {
-    this.provider = provider || new LocalStorageProvider();
+    this.provider = provider || (process.env.SPACES_BUCKET && process.env.SPACES_KEY && process.env.SPACES_SECRET
+      ? new S3CompatibleStorageProvider()
+      : new LocalStorageProvider());
   }
 
   /**
@@ -75,7 +125,11 @@ class StorageService {
     const safeFilename = `${Date.now()}_v${version}_${crypto.randomBytes(4).toString('hex')}${ext}`;
     const storageKey = path.join(entity.toLowerCase(), String(entityId), safeFilename).replace(/\\/g, '/');
 
-    const saveResult = await this.provider.save(buffer, storageKey);
+    const saveResult = await this.provider.save(buffer, storageKey, {
+      mimeType: fileInfo.mimeType,
+      originalFilename: fileInfo.filename,
+      checksumSha256: sha256
+    });
 
     return {
       storageId: `DOC-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
@@ -107,5 +161,6 @@ const storageService = new StorageService();
 module.exports = {
   StorageService,
   LocalStorageProvider,
+  S3CompatibleStorageProvider,
   storageService
 };

@@ -385,6 +385,29 @@ Base URL: `/api` (or `/api/v1`)
 
 ---
 
+## 🚀 Lowest-Cost Production Deployment
+
+For a small internal team, the fastest low-cost production setup is one Ubuntu VPS with Docker:
+
+- Caddy serves the app over HTTPS and proxies requests to the API.
+- PostgreSQL runs in a persistent Docker volume.
+- Artwork uploads are stored in a private DigitalOcean Spaces bucket (S3-compatible object storage).
+- The application container builds and serves the React client and Express API together.
+
+On the VPS:
+
+```bash
+git clone https://github.com/YogabarPackaging/Packaging-Project-flow-Tracker.git
+cd Packaging-Project-flow-Tracker
+cp .env.example .env
+nano .env
+docker compose up -d --build
+docker compose exec app npm run db:setup --prefix server
+curl -fsS https://your-domain.example.com/api/health
+```
+
+Before running this, point the domain's DNS `A` record to the VPS public IP and replace every placeholder in `.env`. Keep SSH restricted to your administrator IP and expose only ports 80 and 443 publicly. Back up PostgreSQL and configure Spaces versioning or an external bucket backup before production use.
+
 ## 📄 License & Ownership
 Copyright © 2024–2026 **YogaBar / Packaging Development Division**.  
 All rights reserved. Internal proprietary packaging operations software.

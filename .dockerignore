@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.*
+node_modules
+client/node_modules
+client/dist
+server/node_modules
+server/.env
+server/data/*.json
+server/backups
+server/uploads
+*.log
+*.pem
+*.docx
+*.xlsx
+scratch

@@ -25,6 +25,7 @@ const importRoutes = require('./routes/importRoutes');
 const packagingFormatRoutes = require('./routes/packagingFormatRoutes');
 const apiDocsRoutes = require('./routes/apiDocsRoutes');
 const exportRoutes = require('./routes/exportRoutes');
+const storageRoutes = require('./routes/storageRoutes');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -106,6 +107,7 @@ v1Router.use('/data-quality', dataQualityRoutes);
 v1Router.use('/import', importRoutes);
 v1Router.use('/packaging-formats', packagingFormatRoutes);
 v1Router.use('/export', exportRoutes);
+v1Router.use('/storage', storageRoutes);
 v1Router.use('/', apiDocsRoutes);
 
 app.use('/api/v1', v1Router);
@@ -303,7 +305,6 @@ async function bootstrap() {
     app.listen(PORT, () => {
       console.log(`\n🚀 PKG Tracker API running on http://localhost:${PORT}`);
       console.log(`   Client expected at: ${CLIENT_URL}`);
-      console.log(`   Super Admin login: username=admin  password=Admin@PKG#2024`);
       if (isDbConnected) {
         console.log(`   ✅ Persistent storage: AWS RDS PostgreSQL (ap-south-1)\n`);
       } else {
