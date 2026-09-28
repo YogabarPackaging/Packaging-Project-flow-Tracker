@@ -8,6 +8,7 @@ node_modules/
 *.pem
 
 # Local database runtime JSON fallback and temporary dumps
+*.zip
 server/data/local_store.json
 server/data/*.json
 server/backups/
