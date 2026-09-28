@@ -8,6 +8,7 @@
     "dev": "node --watch index.js",
     "test": "node --test tests/**/*.test.js",
     "migrate": "node db/migrate.js",
+    "migrate:artworks": "node scripts/migrate_inline_artworks.js",
     "seed": "node db/seed.js",
     "db:setup": "node db/migrate.js && node db/seed.js"
   },

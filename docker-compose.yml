@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
+      NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=768}
       PORT: 5001
       CLIENT_URL: https://${APP_DOMAIN}
       DB_HOST: ${DB_HOST}
@@ -11,7 +12,7 @@ services:
       DB_NAME: ${POSTGRES_DB}
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_SSL_MODE: verify-full
+      DB_SSL_MODE: ${DB_SSL_MODE:-require}
       DB_SSL_ROOT_CERT: ./global-bundle.pem
       LOG_LEVEL: info
       SPACES_ENDPOINT: ${SPACES_ENDPOINT}

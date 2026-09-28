@@ -271,7 +271,6 @@ async function saveSpecSheet(projectId, mIdx, specSheet, submitForCheck, user) {
     specSheet.governance.status = 'DRAFT';
   }
 
-  m.specSheet = specSheet;
   m.artworkCode = getArtworkCode(m.pmCode || specSheet.docHeader?.itemCode);
   if (specSheet.docHeader) {
     specSheet.docHeader.artworkCode = m.artworkCode;
@@ -279,14 +278,20 @@ async function saveSpecSheet(projectId, mIdx, specSheet, submitForCheck, user) {
       m.clubbedCodes = specSheet.docHeader.clubbedCodes;
     }
   }
-  if (Array.isArray(specSheet.variants)) {
-    m.variants = specSheet.variants;
-  }
   if (Array.isArray(specSheet.artworkFiles) && specSheet.artworkFiles.length > 0) {
+    specSheet.artworkFiles = await externalizeArtworkFiles(specSheet.artworkFiles, p.id, m.id, user);
     m.artworkFiles = specSheet.artworkFiles;
   } else if (Array.isArray(m.artworkFiles) && m.artworkFiles.length > 0) {
     specSheet.artworkFiles = m.artworkFiles;
   }
+  if (Array.isArray(specSheet.variants)) {
+    specSheet.variants = await Promise.all(specSheet.variants.map(async variant => ({
+      ...variant,
+      artworkFiles: await externalizeArtworkFiles(variant.artworkFiles || [], p.id, `${m.id}/${variant.id || variant.name || 'variant'}`, user)
+    })));
+    m.variants = specSheet.variants;
+  }
+  m.specSheet = specSheet;
 
   // Persist any base64 data URLs to permanent disk storage
   persistMaterialFiles(m, m.artworkCode);
