@@ -570,6 +570,20 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
         });
       }
 
+      const artworkFiles = Array.isArray(specSheet.artworkFiles) ? specSheet.artworkFiles : [];
+      const parentArtworkUrls = new Set(artworkFiles.map(file => file?.url).filter(Boolean));
+      const compactVariants = (specSheet.variants || []).map(v => ({
+        ...v,
+        artworkUrl: typeof v.artworkUrl === 'string' && v.artworkUrl.startsWith('data:') ? '' : (v.artworkUrl || ''),
+        artworkFiles: Array.isArray(v.artworkFiles)
+          ? v.artworkFiles.filter(file => !parentArtworkUrls.has(file?.url))
+          : []
+      }));
+
+      // Binary data is sent once; the server rebuilds mirrored spec-sheet references after storage.
+      specSheet.artworkFiles = [];
+      specSheet.variants = [];
+
       return {
         ...m,
         id: m.id || `${editProject ? editProject.id : 'proj'}-mat-${idx}`,
@@ -580,8 +594,9 @@ export default function AddProjectPage({ onCancel, onSave, editProject }) {
         pmCode,
         clubbedCodes,
         artworkCode,
-        artworkUrl: m.artworkUrl || (specSheet.artworkFiles?.[0]?.url || ''),
-        variants: specSheet.variants || [],
+        artworkUrl: typeof m.artworkUrl === 'string' && m.artworkUrl.startsWith('data:') ? '' : (m.artworkUrl || ''),
+        artworkFiles,
+        variants: compactVariants,
         specSheet
       };
     });

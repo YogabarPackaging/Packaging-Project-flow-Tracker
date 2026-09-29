@@ -92,6 +92,14 @@ function buildMaterial(rawMat, idx, briefDate, existing = null) {
     createdBy: existing?.createdBy || rawMat.createdBy || null
   };
 
+  if (matObj.specSheet) {
+    matObj.specSheet = {
+      ...matObj.specSheet,
+      artworkFiles: matObj.artworkFiles,
+      variants: matObj.variants
+    };
+  }
+
   return persistMaterialFiles(matObj, artworkCode);
 }
 
