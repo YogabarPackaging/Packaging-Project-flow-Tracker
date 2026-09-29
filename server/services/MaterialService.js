@@ -60,6 +60,47 @@ async function externalizeArtworkFiles(artworkFiles, projectId, materialId, user
   }));
 }
 
+async function externalizeVariantArtwork(variant, projectId, materialId, user) {
+  if (!variant || typeof variant !== 'object') return variant;
+  const result = { ...variant };
+  result.artworkFiles = await externalizeArtworkFiles(result.artworkFiles || [], projectId, materialId, user);
+
+  const inlineUrl = ['artworkUrl', 'artwork'].find(key => typeof result[key] === 'string' && result[key].startsWith('data:'));
+  if (inlineUrl) {
+    const [stored] = await externalizeArtworkFiles([{
+      name: result.artworkFileName || `${result.variantName || result.name || 'variant'}-artwork`,
+      url: result[inlineUrl],
+      type: result.artworkType || 'image/jpeg'
+    }], projectId, materialId, user);
+    result[inlineUrl] = stored.url;
+    if (result.artworkFiles.length === 0) result.artworkFiles = [stored];
+  }
+  return result;
+}
+
+async function externalizeMaterialArtwork(material, projectId, user) {
+  if (!material || typeof material !== 'object') return material;
+  const result = { ...material };
+  const materialId = result.id || result.pmCode || result.name || 'material';
+
+  result.artworkFiles = await externalizeArtworkFiles(result.artworkFiles || [], projectId, materialId, user);
+  if (Array.isArray(result.variants)) {
+    result.variants = await Promise.all(result.variants.map((variant, index) =>
+      externalizeVariantArtwork(variant, projectId, `${materialId}/variant-${index + 1}`, user)
+    ));
+  }
+  if (result.specSheet && typeof result.specSheet === 'object') {
+    result.specSheet = { ...result.specSheet };
+    result.specSheet.artworkFiles = await externalizeArtworkFiles(result.specSheet.artworkFiles || [], projectId, materialId, user);
+    if (Array.isArray(result.specSheet.variants)) {
+      result.specSheet.variants = await Promise.all(result.specSheet.variants.map((variant, index) =>
+        externalizeVariantArtwork(variant, projectId, `${materialId}/spec-variant-${index + 1}`, user)
+      ));
+    }
+  }
+  return result;
+}
+
 // ── Helper: find project and material ─────────────────────────────────────────
 
 async function getProjectAndMaterial(projectId, mIdx) {
@@ -852,6 +893,7 @@ async function signOffSpec(projectId, mIdx, notes, user) {
 }
 
 module.exports = {
+  externalizeMaterialArtwork,
   advanceMaterial,
   revokeMaterial,
   updateSpecs,

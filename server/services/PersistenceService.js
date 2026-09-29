@@ -50,20 +50,16 @@ async function saveProject(project, operation = null) {
           await ProjectsRepo.create(project);
         }
       }
+      const syncTasks = [];
       if (Array.isArray(project.materials)) {
-        if (ProjectMaterialsRepo) {
-          await ProjectMaterialsRepo.syncMaterialsForProject(project.id, project.materials);
-        }
-        if (SpecificationsRepo) {
-          await SpecificationsRepo.syncForProject(project.id, project.materials);
-        }
-        if (ArtworksRepo) {
-          await ArtworksRepo.syncForProject(project.id, project.materials);
-        }
+        if (ProjectMaterialsRepo) syncTasks.push(ProjectMaterialsRepo.syncMaterialsForProject(project.id, project.materials));
+        if (SpecificationsRepo) syncTasks.push(SpecificationsRepo.syncForProject(project.id, project.materials));
+        if (ArtworksRepo) syncTasks.push(ArtworksRepo.syncForProject(project.id, project.materials));
       }
       if (Array.isArray(project.risks) && ProjectRisksRepo) {
-        await ProjectRisksRepo.syncForProject(project.id, project.risks);
+        syncTasks.push(ProjectRisksRepo.syncForProject(project.id, project.risks));
       }
+      await Promise.all(syncTasks);
     } catch (err) {
       logger.warn('PersistenceService', `DB ${operation} failed for project ${project.id}:`, err.message);
     }

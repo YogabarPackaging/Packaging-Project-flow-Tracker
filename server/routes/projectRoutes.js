@@ -49,6 +49,16 @@ function sanitizeProjectForList(p) {
     let cleanMat = { ...m };
     if (Array.isArray(cleanMat.variants)) {
       cleanMat.variants = cleanMat.variants.map(v => {
+        if (v && Array.isArray(v.artworkFiles)) {
+          v = {
+            ...v,
+            artworkFiles: v.artworkFiles.map(f => (
+              f && typeof f.url === 'string' && f.url.startsWith('data:') && f.url.length > 2048
+                ? { ...f, url: '', hasData: true }
+                : f
+            ))
+          };
+        }
         if (v && v.artworkUrl && typeof v.artworkUrl === 'string' && v.artworkUrl.startsWith('data:') && v.artworkUrl.length > 2048) {
           return { ...v, artworkUrl: '', hasArtwork: true };
         }
@@ -82,6 +92,16 @@ function sanitizeProjectForList(p) {
       }
       if (Array.isArray(cleanMat.specSheet.variants)) {
         cleanMat.specSheet.variants = cleanMat.specSheet.variants.map(v => {
+          if (v && Array.isArray(v.artworkFiles)) {
+            v = {
+              ...v,
+              artworkFiles: v.artworkFiles.map(f => (
+                f && typeof f.url === 'string' && f.url.startsWith('data:') && f.url.length > 2048
+                  ? { ...f, url: '', hasData: true }
+                  : f
+              ))
+            };
+          }
           if (v && v.artworkUrl && typeof v.artworkUrl === 'string' && v.artworkUrl.startsWith('data:') && v.artworkUrl.length > 2048) {
             return { ...v, artworkUrl: '', hasArtwork: true };
           }

@@ -33,6 +33,7 @@ const { calculateCrunchedTimeline } = require('../crunchUtils');
 const { today } = require('../utils');
 const logger = require('../utils/logger');
 const { persistMaterialFiles } = require('./UploadStorageService');
+const { externalizeMaterialArtwork } = require('./MaterialService');
 
 // ── Material Factory ──────────────────────────────────────────────────────────
 
@@ -125,7 +126,8 @@ async function createProject(data, user) {
   }
 
   // Build normalized materials
-  const mats = materials.map((m, idx) => buildMaterial(m, idx, briefDate));
+  const externalizedMaterials = await Promise.all(materials.map(m => externalizeMaterialArtwork(m, internalId, user)));
+  const mats = externalizedMaterials.map((m, idx) => buildMaterial(m, idx, briefDate));
 
   // Calculate project-level milestones
   const ms = calcProjectMilestones(briefDate, mats);
@@ -386,7 +388,8 @@ async function updateProject(id, data, user) {
   }
 
   if (materials && materials.length) {
-    p.materials = materials.map((m, i) => {
+    const externalizedMaterials = await Promise.all(materials.map(m => externalizeMaterialArtwork(m, p.id, user)));
+    p.materials = externalizedMaterials.map((m, i) => {
       const existing = existingMats
         ? (existingMats.find(em => (m.id && em.id === m.id) || (m.pmCode && em.pmCode === m.pmCode) || (m.name && em.name === m.name)) || existingMats[i])
         : null;
