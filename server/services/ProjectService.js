@@ -126,7 +126,8 @@ async function createProject(data, user) {
   }
 
   // Build normalized materials
-  const externalizedMaterials = await Promise.all(materials.map(m => externalizeMaterialArtwork(m, internalId, user)));
+  const uploadCache = new Map();
+  const externalizedMaterials = await Promise.all(materials.map(m => externalizeMaterialArtwork(m, internalId, user, uploadCache)));
   const mats = externalizedMaterials.map((m, idx) => buildMaterial(m, idx, briefDate));
 
   // Calculate project-level milestones
@@ -388,7 +389,8 @@ async function updateProject(id, data, user) {
   }
 
   if (materials && materials.length) {
-    const externalizedMaterials = await Promise.all(materials.map(m => externalizeMaterialArtwork(m, p.id, user)));
+    const uploadCache = new Map();
+    const externalizedMaterials = await Promise.all(materials.map(m => externalizeMaterialArtwork(m, p.id, user, uploadCache)));
     p.materials = externalizedMaterials.map((m, i) => {
       const existing = existingMats
         ? (existingMats.find(em => (m.id && em.id === m.id) || (m.pmCode && em.pmCode === m.pmCode) || (m.name && em.name === m.name)) || existingMats[i])

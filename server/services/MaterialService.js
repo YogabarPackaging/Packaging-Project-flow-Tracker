@@ -27,7 +27,7 @@ const { getMaterialLeadTime } = require('../constants');
 const { storageService } = require('./StorageService');
 const { persistArtworkFiles, persistMaterialFiles } = require('./UploadStorageService');
 
-async function externalizeArtworkFiles(artworkFiles, projectId, materialId, user) {
+async function externalizeArtworkFiles(artworkFiles, projectId, materialId, user, uploadCache = new Map()) {
   if (!Array.isArray(artworkFiles)) return [];
 
   return Promise.all(artworkFiles.map(async (file) => {
@@ -36,15 +36,19 @@ async function externalizeArtworkFiles(artworkFiles, projectId, materialId, user
     const match = file.url.match(/^data:([^;,]+)?(?:;base64)?,(.*)$/s);
     if (!match) throw AppError.validation(`Artwork file '${file.name || 'unnamed'}' has an invalid data URL.`);
 
-    const buffer = Buffer.from(match[2], 'base64');
-    const stored = await storageService.storeDocument(buffer, {
-      filename: file.name,
-      mimeType: file.type || match[1] || 'application/octet-stream',
-      entity: 'ARTWORK',
-      entityId: `${projectId}/${materialId}`,
-      version: file.version || 1,
-      owner: user.email
-    });
+    let stored = uploadCache.get(file.url);
+    if (!stored) {
+      const buffer = Buffer.from(match[2], 'base64');
+      stored = await storageService.storeDocument(buffer, {
+        filename: file.name,
+        mimeType: file.type || match[1] || 'application/octet-stream',
+        entity: 'ARTWORK',
+        entityId: `${projectId}/${materialId}`,
+        version: file.version || 1,
+        owner: user.email
+      });
+      uploadCache.set(file.url, stored);
+    }
 
     return {
       ...file,
@@ -60,10 +64,10 @@ async function externalizeArtworkFiles(artworkFiles, projectId, materialId, user
   }));
 }
 
-async function externalizeVariantArtwork(variant, projectId, materialId, user) {
+async function externalizeVariantArtwork(variant, projectId, materialId, user, uploadCache) {
   if (!variant || typeof variant !== 'object') return variant;
   const result = { ...variant };
-  result.artworkFiles = await externalizeArtworkFiles(result.artworkFiles || [], projectId, materialId, user);
+  result.artworkFiles = await externalizeArtworkFiles(result.artworkFiles || [], projectId, materialId, user, uploadCache);
 
   const inlineUrl = ['artworkUrl', 'artwork'].find(key => typeof result[key] === 'string' && result[key].startsWith('data:'));
   if (inlineUrl) {
@@ -71,30 +75,30 @@ async function externalizeVariantArtwork(variant, projectId, materialId, user) {
       name: result.artworkFileName || `${result.variantName || result.name || 'variant'}-artwork`,
       url: result[inlineUrl],
       type: result.artworkType || 'image/jpeg'
-    }], projectId, materialId, user);
+    }], projectId, materialId, user, uploadCache);
     result[inlineUrl] = stored.url;
     if (result.artworkFiles.length === 0) result.artworkFiles = [stored];
   }
   return result;
 }
 
-async function externalizeMaterialArtwork(material, projectId, user) {
+async function externalizeMaterialArtwork(material, projectId, user, uploadCache = new Map()) {
   if (!material || typeof material !== 'object') return material;
   const result = { ...material };
   const materialId = result.id || result.pmCode || result.name || 'material';
 
-  result.artworkFiles = await externalizeArtworkFiles(result.artworkFiles || [], projectId, materialId, user);
+  result.artworkFiles = await externalizeArtworkFiles(result.artworkFiles || [], projectId, materialId, user, uploadCache);
   if (Array.isArray(result.variants)) {
     result.variants = await Promise.all(result.variants.map((variant, index) =>
-      externalizeVariantArtwork(variant, projectId, `${materialId}/variant-${index + 1}`, user)
+      externalizeVariantArtwork(variant, projectId, `${materialId}/variant-${index + 1}`, user, uploadCache)
     ));
   }
   if (result.specSheet && typeof result.specSheet === 'object') {
     result.specSheet = { ...result.specSheet };
-    result.specSheet.artworkFiles = await externalizeArtworkFiles(result.specSheet.artworkFiles || [], projectId, materialId, user);
+    result.specSheet.artworkFiles = await externalizeArtworkFiles(result.specSheet.artworkFiles || [], projectId, materialId, user, uploadCache);
     if (Array.isArray(result.specSheet.variants)) {
       result.specSheet.variants = await Promise.all(result.specSheet.variants.map((variant, index) =>
-        externalizeVariantArtwork(variant, projectId, `${materialId}/spec-variant-${index + 1}`, user)
+        externalizeVariantArtwork(variant, projectId, `${materialId}/spec-variant-${index + 1}`, user, uploadCache)
       ));
     }
   }
@@ -319,8 +323,9 @@ async function saveSpecSheet(projectId, mIdx, specSheet, submitForCheck, user) {
       m.clubbedCodes = specSheet.docHeader.clubbedCodes;
     }
   }
+  const uploadCache = new Map();
   if (Array.isArray(specSheet.artworkFiles) && specSheet.artworkFiles.length > 0) {
-    specSheet.artworkFiles = await externalizeArtworkFiles(specSheet.artworkFiles, p.id, m.id, user);
+    specSheet.artworkFiles = await externalizeArtworkFiles(specSheet.artworkFiles, p.id, m.id, user, uploadCache);
     m.artworkFiles = specSheet.artworkFiles;
   } else if (Array.isArray(m.artworkFiles) && m.artworkFiles.length > 0) {
     specSheet.artworkFiles = m.artworkFiles;
@@ -328,7 +333,7 @@ async function saveSpecSheet(projectId, mIdx, specSheet, submitForCheck, user) {
   if (Array.isArray(specSheet.variants)) {
     specSheet.variants = await Promise.all(specSheet.variants.map(async variant => ({
       ...variant,
-      artworkFiles: await externalizeArtworkFiles(variant.artworkFiles || [], p.id, `${m.id}/${variant.id || variant.name || 'variant'}`, user)
+      artworkFiles: await externalizeArtworkFiles(variant.artworkFiles || [], p.id, `${m.id}/${variant.id || variant.name || 'variant'}`, user, uploadCache)
     })));
     m.variants = specSheet.variants;
   }
